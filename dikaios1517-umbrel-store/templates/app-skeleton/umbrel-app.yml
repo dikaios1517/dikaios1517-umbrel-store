@@ -1,0 +1,26 @@
+manifestVersion: 1
+id: dikaios1517-<name>
+category: <category>   # e.g. bitcoin, social, networking, media, developer-tools
+name: <App Name>
+version: "0.1.0"
+tagline: One-line description shown in the app store tile
+icon: <URL to a square PNG/SVG icon>
+description: >-
+  Longer description shown on the app's store page. How it works, how to
+  connect to it, and anything the user must know before installing.
+developer: <upstream author>
+website: <https://...>
+repo: <https://github.com/...>
+support: <issues URL>
+submitter: Kris Kord
+submission: https://github.com/YOUR_GH_USERNAME/<store-repo>
+port: <PORT>
+gallery: []            # optional screenshot URLs
+releaseNotes: >-
+  Initial packaging.
+dependencies: []       # e.g. [lightning, bitcoin] if the app needs umbrel core apps
+path: ""               # subpath if the UI lives at e.g. /admin/
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: false
+torOnly: false

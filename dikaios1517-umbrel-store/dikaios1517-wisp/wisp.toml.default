@@ -1,0 +1,75 @@
+# Default Wisp configuration for the Umbrel package. On first start this file
+# is copied to /data/wisp.toml. Edit the copy (Files -> Apps -> Wisp -> data)
+# and restart the app to apply changes. See docs/configuration.md upstream for
+# every option.
+
+[server]
+# Must stay 0.0.0.0 inside the container so Umbrel's proxy and your
+# LAN/Tor clients can reach the relay.
+host = "0.0.0.0"
+port = 7777
+
+[relay]
+name = "My Wisp Relay"
+description = "A private Nostr relay"
+# pubkey = "your_hex_pubkey"
+# contact = "admin@example.com"
+
+[storage]
+path = "/data/wisp"
+# map_size_mb = 10240
+# sync = "meta"
+
+[limits]
+max_connections = 1000
+workers = 0
+max_subscriptions = 20
+max_filters = 10
+max_message_size = 65536
+max_event_tags = 2000
+max_content_length = 102400
+query_limit_default = 500
+query_limit_max = 5000
+query_scan_multiplier = 20
+
+[rate_limits]
+events_per_minute = 120
+queries_per_minute = 300
+
+[timeouts]
+idle_seconds = 300
+
+[auth]
+# required = false
+# to_write = false
+# relay_url = ""
+
+[security]
+# trust_proxy: leave false when clients connect directly (LAN, Tailscale, Tor).
+# Only set true if you front Wisp with your own reverse proxy that sets
+# X-Forwarded-For, otherwise per-IP limits can be forged.
+trust_proxy = false
+
+[spider]
+# Syncs events from people you follow on public relays. Set admin to your
+# hex pubkey to fetch your contact list and sync your feed.
+enabled = true
+relays = "wss://relay.damus.io,wss://nos.lol,wss://relay.nostr.band"
+sync_interval = 300
+admin = ""
+
+[negentropy]
+enabled = true
+max_sync_events = 100000
+max_sessions = 4
+
+[management]
+# NIP-86 relay management. Comma-separated hex pubkeys allowed to run admin
+# commands.
+# admin_pubkeys = ""
+
+[watchdog]
+enabled = true
+interval_seconds = 10
+timeout_ms = 2000
+failures = 4
