@@ -91,6 +91,15 @@
   </div>
 
   <div class="card">
+    <h2>Retention</h2>
+    <p class="muted" id="retention-status">checking…</p>
+    <div class="actions">
+      <button id="purge-now" class="secondary">Run purge now</button>
+    </div>
+    <p class="muted" style="margin-top:10px">Enable under [retention] in the settings below: purges events older than <b>purge_after_months</b> once per <b>interval_hours</b>. With <b>keep_admin_notes</b> on, events authored by the [spider] admin are kept indefinitely. Deleted events are tombstoned so sync cannot re-add them.</p>
+  </div>
+
+  <div class="card">
     <h2>Settings</h2>
     <div id="editor"><p class="muted">Loading configuration…</p></div>
     <div class="actions">
@@ -238,6 +247,39 @@ document.getElementById('reset').addEventListener('click', () => {
   dirty = false;
   toast('Changes discarded');
 });
+
+async function refreshRetention() {
+  try {
+    const s = await api('/api/purge');
+    const el = document.getElementById('retention-status');
+    if (!s.lastResult && !s.lastRun) {
+      el.innerHTML = 'No purge has run yet. Enable [retention] below.';
+    } else {
+      const r = s.lastResult || {};
+      const when = new Date((s.lastRun || 0) * 1000).toLocaleString();
+      if (r.ok === false) {
+        el.innerHTML = 'Last run ' + when + ': <b style="color:var(--danger)">failed</b> — ' + (r.error || 'unknown error');
+      } else if (r.enabled === false) {
+        el.innerHTML = 'Last run ' + when + ': retention disabled (' + (r.deleted || 0) + ' purged).';
+      } else {
+        el.innerHTML = 'Last run ' + when + ': <b style="color:var(--teal-bright)">' + (r.deleted || 0) + '</b> events purged, ' +
+          (r.skippedAdmin || 0) + ' admin events kept' + (r.errors ? ', ' + r.errors + ' errors' : '') + '.';
+      }
+    }
+  } catch (e) { /* GUI server restarting */ }
+}
+
+document.getElementById('purge-now').addEventListener('click', async (ev) => {
+  ev.target.disabled = true;
+  try {
+    await api('/api/purge', {method: 'POST'});
+    toast('Purge finished');
+  } catch (e) { toast('Purge failed: ' + e.message, true); }
+  ev.target.disabled = false;
+  refreshRetention();
+});
+
+refreshRetention();
 
 loadAll().catch(e => {
   document.getElementById('editor').innerHTML =

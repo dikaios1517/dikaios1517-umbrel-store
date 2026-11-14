@@ -12,15 +12,23 @@ services:
       PROXY_AUTH_ADD: "false"
 
   wisp:
-    # Convention: ghcr.io/<your-github-user>/<app-id>:<version>. The
-    # build-apps workflow pushes there automatically; replace
-    # YOUR_GH_USERNAME with your GitHub account name before pushing.
-    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.4
+    # Image is built and pushed by the build-apps workflow to
+    # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
+    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.5
     init: true
     restart: on-failure
     stop_grace_period: 1m
     volumes:
       - ${APP_DATA_DIR}/data:/data
+    # The relay is published DIRECTLY on the host so LAN clients, Tailscale,
+    # and tunnels (e.g. cloudflared) reach wisp itself, not the app proxy:
+    #   ws://<umbrel-ip>:7777  -> relay (cloudflared tunnel target)
+    #   http://<umbrel-ip>:3000 -> management GUI
+    # The Umbrel dashboard icon and the Tor hidden service still route through
+    # app_proxy to the GUI on 3000, which transparently proxies relay traffic.
+    ports:
+      - "7777:7777"
+      - "3000:3000"
     environment:
       # umbreld injects the app's Tor hostname here (not-enabled.onion unless
       # remote Tor access is switched on); the GUI displays it.

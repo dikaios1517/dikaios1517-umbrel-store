@@ -76,3 +76,15 @@ enabled = true
 interval_seconds = 10
 timeout_ms = 2000
 failures = 4
+
+[retention]
+# Age-based purge of old events, run by the management GUI (the relay itself
+# ignores this section). A background worker deletes events older than
+# purge_after_months once per interval_hours (30-day months). Deleted events
+# get tombstones so sync cannot re-add them.
+enabled = false
+purge_after_months = 12
+# keep_admin_notes = true retains every event authored by the [spider] admin
+# (and [management] admin_pubkeys) indefinitely, regardless of age.
+keep_admin_notes = true
+interval_hours = 24

@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.4"
+version: "0.9.5"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -16,7 +16,8 @@ description: >-
 
   Step 2. Add your relay URL in your Nostr client:
 
-  - On your home network or over Tailscale: ws://umbrel:7777
+  - On your home network or over Tailscale: ws://umbrel:7777 (connects directly
+  to the relay, ideal for Cloudflare tunnels or other reverse proxies)
 
   - Over Tor: use the onion address shown on the Wisp app page (ws://<onion>)
 
@@ -32,8 +33,11 @@ description: >-
 
   Click the Wisp icon on your Umbrel dashboard to open its management page:
   view the relay's local and Tor websocket addresses, edit every wisp.toml
-  setting in a form, save, and restart the relay. The config file can still be
-  edited directly at Files -> Apps -> Wisp -> data -> wisp.toml.
+  setting in a form, save, restart the relay, and configure optional retention
+  that purges events older than a chosen age. The management page is also
+  served directly at http://umbrel:3000; the relay itself listens directly on
+  port 7777. The config file can still be edited directly at Files -> Apps ->
+  Wisp -> data -> wisp.toml.
 
 
   This package builds the upstream Wisp v0.9.3 release from source. It is
@@ -43,13 +47,15 @@ website: https://github.com/privkeyio/wisp
 repo: https://github.com/privkeyio/wisp
 support: https://github.com/privkeyio/wisp/issues
 submitter: Kris Kord
-submission: https://github.com/YOUR_GH_USERNAME/wisp-umbrel-store
+submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 7777
 gallery: []
 releaseNotes: >-
-  Adds a management dashboard. Click the app icon to view the relay's local and
-  Tor websocket addresses, edit wisp.toml settings in a form, save, and restart
-  the relay without touching the terminal. Relay core remains upstream v0.9.3.
+  Relay now listens directly on port 7777 on the LAN (ideal for Cloudflare
+  tunnels); the management page moves to http://umbrel:3000 (dashboard icon and
+  Tor unchanged). Adds optional retention: purge events older than a chosen
+  number of months, keep the admin's notes indefinitely, run daily. Relay core
+  remains upstream v0.9.3.
 dependencies: []
 path: ""
 defaultUsername: ""

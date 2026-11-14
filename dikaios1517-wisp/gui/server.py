@@ -22,6 +22,8 @@ import threading
 import time
 import tomllib
 
+import purge
+
 RELAY_HOST = '127.0.0.1'
 RELAY_PORT = 7777
 GUI_PORT = int(os.environ.get('GUI_PORT', '3000'))
@@ -230,6 +232,10 @@ class Handler:
             elif path == '/api/restart' and method == 'POST':
                 ok, msg = restart_relay()
                 self.respond(200 if ok else 500, {'ok': ok, 'message': msg})
+            elif path == '/api/purge' and method == 'GET':
+                self.respond(200, purge_scheduler.status)
+            elif path == '/api/purge' and method == 'POST':
+                self.respond(200, purge_scheduler.run_now())
             else:
                 self.respond(404, {'error': 'not found'})
         except Exception as e:  # noqa: BLE001 - surfaced to the GUI
@@ -276,4 +282,8 @@ class ThreadedTCPServer(socketserver.ThreadingTCPServer):
 
 if __name__ == '__main__':
     server = ThreadedTCPServer(('0.0.0.0', GUI_PORT), ThreadedTCPServer)
+
+    purge_scheduler = purge.PurgeScheduler(read_config)
+    purge_scheduler.start()
+
     server.serve_forever()
