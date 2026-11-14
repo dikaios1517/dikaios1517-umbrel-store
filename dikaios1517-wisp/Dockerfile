@@ -5,6 +5,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     git \
     ca-certificates \
+    liblmdb-dev \
+    libsecp256k1-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
@@ -43,6 +46,9 @@ FROM docker.io/library/debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     ca-certificates \
+    liblmdb0 \
+    libsecp256k1-1 \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /src/zig-out/bin/wisp /usr/local/bin/wisp
