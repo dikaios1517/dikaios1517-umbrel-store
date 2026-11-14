@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wisp Relay</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2330;
+    --border: #2a3444;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --teal: #14b8a6;
+    --teal-bright: #2dd4bf;
+    --teal-dim: rgba(20, 184, 166, 0.12);
+    --danger: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  header h1 { font-size: 20px; margin: 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); display: inline-block; }
+  .dot.up { background: var(--teal-bright); box-shadow: 0 0 8px var(--teal-bright); }
+  .dot.down { background: var(--danger); }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; margin-bottom: 18px;
+  }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+       color: var(--teal-bright); margin: 0 0 12px; }
+  .url-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .url-row code {
+    background: var(--teal-dim); color: var(--teal-bright);
+    padding: 5px 10px; border-radius: 6px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px;
+    word-break: break-all;
+  }
+  .muted { color: var(--muted); font-size: 12px; }
+  button {
+    background: var(--teal); color: #04211d; border: none;
+    padding: 9px 18px; border-radius: 8px; font-weight: 600;
+    font-size: 13px; cursor: pointer;
+  }
+  button:hover { background: var(--teal-bright); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+  button.secondary:hover { border-color: var(--teal); color: var(--teal-bright); }
+  .section { margin-bottom: 14px; }
+  .section h3 {
+    font-size: 12px; color: var(--teal-bright); margin: 0 0 8px;
+    font-family: ui-monospace, monospace;
+  }
+  .field { display: grid; grid-template-columns: 220px 1fr; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .field label { color: var(--muted); font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+  .field input, .field select {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 9px; font-size: 13px; width: 100%;
+  }
+  .field input:focus { outline: none; border-color: var(--teal); }
+  .actions { display: flex; gap: 10px; margin-top: 6px; }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--panel-2); border: 1px solid var(--teal); color: var(--teal-bright);
+    padding: 10px 18px; border-radius: 8px; display: none; font-size: 13px;
+  }
+  .bool { width: auto !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="dot" id="status-dot"></span>
+    <h1>Wisp Relay</h1>
+    <span class="muted" id="status-text">checking…</span>
+  </header>
+
+  <div class="card">
+    <h2>Connect clients</h2>
+    <div class="url-row"><span class="muted" style="min-width:110px">Local network</span><code id="url-lan">ws://umbrel:7777</code></div>
+    <div class="url-row" id="row-onion" style="display:none"><span class="muted" style="min-width:110px">Tor</span><code id="url-onion"></code></div>
+    <p class="muted">The Tor address appears once remote Tor access is enabled in umbrelOS settings. The relay accepts websocket connections on any of these addresses; the same address serves the NIP-11 relay info document and /metrics.</p>
+  </div>
+
+  <div class="card">
+    <h2>Settings</h2>
+    <div id="editor"><p class="muted">Loading configuration…</p></div>
+    <div class="actions">
+      <button id="save">Save configuration</button>
+      <button id="restart" class="secondary">Restart relay</button>
+      <button id="reset" class="secondary">Discard changes</button>
+    </div>
+    <p class="muted" id="save-note" style="margin-top:10px"></p>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+let config = null;
+let dirty = false;
+
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = err ? 'var(--danger)' : 'var(--teal)';
+  t.style.color = err ? 'var(--danger)' : 'var(--teal-bright)';
+  t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.style.display = 'none', 4000);
+}
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || r.statusText);
+  return body;
+}
+
+async function refreshStatus() {
+  try {
+    const s = await api('/api/status');
+    const dot = document.getElementById('status-dot');
+    dot.className = 'dot ' + (s.relayRunning ? 'up' : 'down');
+    document.getElementById('status-text').textContent =
+      s.relayRunning ? 'relay is running' : 'relay is stopped';
+    const row = document.getElementById('row-onion');
+    if (s.onion) {
+      document.getElementById('url-onion').textContent = 'ws://' + s.onion;
+      row.style.display = 'flex';
+    } else {
+      row.style.display = 'none';
+    }
+  } catch (e) {
+    document.getElementById('status-text').textContent = 'GUI server error: ' + e.message;
+  }
+}
+
+function field(section, key, value) {
+  const row = document.createElement('div');
+  row.className = 'field';
+  const label = document.createElement('label');
+  label.textContent = section + '.' + key;
+  let input;
+  if (typeof value === 'boolean') {
+    input = document.createElement('select');
+    input.dataset.type = 'bool';
+    for (const v of ['true', 'false']) {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (value === (v === 'true')) o.selected = true;
+      input.appendChild(o);
+    }
+  } else {
+    input = document.createElement('input');
+    input.value = String(value);
+  }
+  input.dataset.section = section;
+  input.dataset.key = key;
+  input.addEventListener('input', () => { dirty = true; });
+  row.appendChild(label);
+  row.appendChild(input);
+  return row;
+}
+
+function renderEditor(cfg) {
+  const ed = document.getElementById('editor');
+  ed.innerHTML = '';
+  for (const [section, values] of Object.entries(cfg)) {
+    if (!values || typeof values !== 'object' || Array.isArray(values)) continue;
+    const sec = document.createElement('div');
+    sec.className = 'section';
+    const h = document.createElement('h3');
+    h.textContent = '[' + section + ']';
+    sec.appendChild(h);
+    for (const [key, value] of Object.entries(values)) {
+      if (typeof value === 'object' && value !== null) continue;
+      sec.appendChild(field(section, key, value));
+    }
+    ed.appendChild(sec);
+  }
+}
+
+function collectEditor() {
+  const out = JSON.parse(JSON.stringify(config));
+  document.querySelectorAll('#editor input, #editor select').forEach(input => {
+    const s = input.dataset.section, k = input.dataset.key;
+    let v = input.value;
+    if (input.dataset.type === 'bool') v = (v === 'true');
+    else if (v !== '' && !isNaN(v) && !/^\s*0/.test(v) && typeof out[s][k] === 'number') v = Number(v);
+    if (!(s in out)) out[s] = {};
+    out[s][k] = v;
+  });
+  return out;
+}
+
+async function loadAll() {
+  config = await api('/api/config');
+  renderEditor(config);
+  await refreshStatus();
+}
+
+document.getElementById('save').addEventListener('click', async () => {
+  try {
+    await api('/api/config', {method: 'POST', body: JSON.stringify(collectEditor())});
+    dirty = false;
+    document.getElementById('save-note').textContent =
+      'Saved. Restart the relay to apply.';
+    toast('Configuration saved');
+  } catch (e) { toast('Save failed: ' + e.message, true); }
+});
+
+document.getElementById('restart').addEventListener('click', async (ev) => {
+  if (dirty && !confirm('Unsaved changes will be kept but not applied. Save first? Save now?')) return;
+  if (dirty) {
+    try { await api('/api/config', {method: 'POST', body: JSON.stringify(collectEditor())}); dirty = false; }
+    catch (e) { toast('Save failed: ' + e.message, true); return; }
+  }
+  ev.target.disabled = true;
+  try {
+    const r = await api('/api/restart', {method: 'POST'});
+    toast(r.message || 'Restarting…');
+    setTimeout(refreshStatus, 3000);
+    setTimeout(refreshStatus, 8000);
+  } catch (e) { toast('Restart failed: ' + e.message, true); }
+  ev.target.disabled = false;
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  renderEditor(config);
+  dirty = false;
+  toast('Changes discarded');
+});
+
+loadAll().catch(e => {
+  document.getElementById('editor').innerHTML =
+    '<p class="muted">Failed to load: ' + e.message + '</p>';
+});
+setInterval(refreshStatus, 10000);
+</script>
+</body>
+</html>

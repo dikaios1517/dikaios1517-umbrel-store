@@ -3,25 +3,30 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Forwards the app's Umbrel page / Tor hidden service / LAN port
-      # to wisp's websocket. Umbrel's proxy passes websocket upgrades,
-      # so Nostr clients reach the relay through the exported port.
+      # Forwards the app's Umbrel page / Tor hidden service / LAN port to the
+      # management GUI on port 3000. The GUI itself transparently proxies
+      # websocket upgrades, NIP-11 info requests and /metrics to the relay on
+      # 7777, so Nostr clients connect to the same exported address.
       APP_HOST: dikaios1517-wisp_wisp_1
-      APP_PORT: 7777
+      APP_PORT: 3000
       PROXY_AUTH_ADD: "false"
 
   wisp:
     # Convention: ghcr.io/<your-github-user>/<app-id>:<version>. The
     # build-apps workflow pushes there automatically; replace
     # YOUR_GH_USERNAME with your GitHub account name before pushing.
-    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.3
+    image: ghcr.io/YOUR_GH_USERNAME/dikaios1517-wisp:0.9.4
     init: true
     restart: on-failure
     stop_grace_period: 1m
     volumes:
       - ${APP_DATA_DIR}/data:/data
+    environment:
+      # umbreld injects the app's Tor hostname here (not-enabled.onion unless
+      # remote Tor access is switched on); the GUI displays it.
+      APP_HIDDEN_SERVICE: ${APP_HIDDEN_SERVICE:-not-enabled.onion}
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/7777"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/3000"]
       interval: 30s
       timeout: 5s
       retries: 5

@@ -46,6 +46,7 @@ FROM docker.io/library/debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     ca-certificates \
+    python3 \
     liblmdb0 \
     libsecp256k1-1 \
     libssl3 \
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /src/zig-out/bin/wisp /usr/local/bin/wisp
 COPY wisp.toml.default /app/wisp.toml.default
+COPY gui/ /app/gui/
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
@@ -64,4 +66,4 @@ RUN useradd --system --no-create-home --shell /usr/sbin/nologin wisp \
 # unlike the StartOS package (which runs a root chown oneshot) the container
 # itself must bootstrap permissions.
 ENTRYPOINT ["/entrypoint.sh"]
-EXPOSE 7777
+EXPOSE 3000 7777

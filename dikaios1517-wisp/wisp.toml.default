@@ -45,10 +45,13 @@ idle_seconds = 300
 # relay_url = ""
 
 [security]
-# trust_proxy: leave false when clients connect directly (LAN, Tailscale, Tor).
-# Only set true if you front Wisp with your own reverse proxy that sets
-# X-Forwarded-For, otherwise per-IP limits can be forged.
-trust_proxy = false
+# The Umbrel package fronts Wisp with its built-in GUI/proxy, which forwards
+# websocket upgrades and NIP-11 requests to the relay on 127.0.0.1 and injects
+# the real client IP in X-Forwarded-For. trust_proxy + this whitelist keeps
+# per-IP limits keyed to the actual client; only peers on the list may set
+# forwarded headers, so it cannot be forged by clients.
+trust_proxy = true
+trusted_proxies = "127.0.0.1"
 
 [spider]
 # Syncs events from people you follow on public relays. Set admin to your

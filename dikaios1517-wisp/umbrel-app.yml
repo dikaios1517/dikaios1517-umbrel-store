@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.3"
+version: "0.9.4"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -27,8 +27,13 @@ description: >-
   Wisp stores events in LMDB on persistent app storage, supports negentropy
   reconciliation for fast relay-to-relay sync, includes an optional spider that
   pulls events from the people you follow on public relays, and exposes NIP-86
-  management commands. Configure it by editing wisp.toml in the app's data
-  folder (Files -> Apps -> Wisp -> data -> wisp.toml) and restarting the app.
+  management commands.
+
+
+  Click the Wisp icon on your Umbrel dashboard to open its management page:
+  view the relay's local and Tor websocket addresses, edit every wisp.toml
+  setting in a form, save, and restart the relay. The config file can still be
+  edited directly at Files -> Apps -> Wisp -> data -> wisp.toml.
 
 
   This package builds the upstream Wisp v0.9.3 release from source. It is
@@ -42,7 +47,9 @@ submission: https://github.com/YOUR_GH_USERNAME/wisp-umbrel-store
 port: 7777
 gallery: []
 releaseNotes: >-
-  Initial Umbrel packaging of Wisp 0.9.3.
+  Adds a management dashboard. Click the app icon to view the relay's local and
+  Tor websocket addresses, edit wisp.toml settings in a form, save, and restart
+  the relay without touching the terminal. Relay core remains upstream v0.9.3.
 dependencies: []
 path: ""
 defaultUsername: ""
