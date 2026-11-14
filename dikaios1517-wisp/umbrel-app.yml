@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.5"
+version: "0.9.6"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -48,14 +48,13 @@ repo: https://github.com/privkeyio/wisp
 support: https://github.com/privkeyio/wisp/issues
 submitter: Kris Kord
 submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
-port: 7777
+port: 3000
 gallery: []
 releaseNotes: >-
-  Relay now listens directly on port 7777 on the LAN (ideal for Cloudflare
-  tunnels); the management page moves to http://umbrel:3000 (dashboard icon and
-  Tor unchanged). Adds optional retention: purge events older than a chosen
-  number of months, keep the admin's notes indefinitely, run daily. Relay core
-  remains upstream v0.9.3.
+  Security fix: Umbrel's app gateway no longer binds port 7777, so the
+  management GUI is unreachable there — port 7777 now serves only the relay
+  (safe to point a Cloudflare tunnel at). The GUI remains on the dashboard
+  icon and at http://umbrel:3000. Relay core remains upstream v0.9.3.
 dependencies: []
 path: ""
 defaultUsername: ""

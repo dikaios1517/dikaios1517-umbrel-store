@@ -14,21 +14,23 @@ services:
   wisp:
     # Image is built and pushed by the build-apps workflow to
     # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
-    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.5
+    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.6
     init: true
     restart: on-failure
     stop_grace_period: 1m
     volumes:
       - ${APP_DATA_DIR}/data:/data
-    # The relay is published DIRECTLY on the host so LAN clients, Tailscale,
-    # and tunnels (e.g. cloudflared) reach wisp itself, not the app proxy:
+    # Relay published DIRECTLY on the host so LAN clients, Tailscale, and
+    # tunnels (e.g. cloudflared) reach wisp itself, not the app proxy:
     #   ws://<umbrel-ip>:7777  -> relay (cloudflared tunnel target)
-    #   http://<umbrel-ip>:3000 -> management GUI
-    # The Umbrel dashboard icon and the Tor hidden service still route through
-    # app_proxy to the GUI on 3000, which transparently proxies relay traffic.
+    #   http://<umbrel-ip>:3000 -> management GUI (via Umbrel's app gateway,
+    #                             which serves the manifest port to the proxy)
+    # The GUI is NOT published by Docker: Umbrel's gateway already binds host
+    # port 3000 (the manifest port) and forwards to app_proxy, and publishing
+    # it here would double-bind the port. The dashboard icon and the Tor
+    # hidden service also route through app_proxy to the GUI on 3000.
     ports:
       - "7777:7777"
-      - "3000:3000"
     environment:
       # umbreld injects the app's Tor hostname here (not-enabled.onion unless
       # remote Tor access is switched on); the GUI displays it.

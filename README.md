@@ -17,12 +17,15 @@ shows the relay's LAN and Tor websocket addresses, renders every `wisp.toml`
 setting as a form, can save and restart the relay, and manages optional
 retention. It is also served directly at **http://umbrel:3000**.
 
-**Ports** (as of 0.9.5):
+**Ports** (as of 0.9.6):
 
-- `ws://umbrel:7777` — the relay itself, published directly on the host
-  network. Use this for LAN clients, Tailscale, and tunnels (point cloudflared
-  at `http://<umbrel-ip>:7777`).
-- `http://umbrel:3000` — the management GUI, also published directly.
+- `ws://<umbrel-ip>:7777` — the relay itself, published directly on the host
+  network via Docker. Use this for LAN clients, Tailscale, and tunnels (point
+  cloudflared at `http://<umbrel-ip>:7777`). The management GUI is **not**
+  reachable on this port.
+- `http://umbrel:3000` — the management GUI, served by Umbrel's app gateway
+  (the manifest port) and by the dashboard icon / Tor onion address — all
+  three route through the app proxy to the GUI.
 - Dashboard icon and Tor onion address — routed through Umbrel's app proxy to
   the GUI, which transparently proxies websocket upgrades, NIP-11 info
   requests and `/metrics` to the relay, so Tor clients keep working.
