@@ -30,6 +30,7 @@ import time
 
 # lmdb.h flag values
 MDB_NOSUBDIR = 0x4000
+MDB_NOTLS = 0x200000
 MDB_NOSYNC = 0x10000
 MDB_RDONLY = 0x20000
 MDB_NOMETASYNC = 0x40000
@@ -85,7 +86,7 @@ class Lmdb:
         c.mdb_txn_commit.argtypes = [ctypes.c_void_p]
         c.mdb_dbi_close.argtypes = [ctypes.c_void_p, ctypes.c_uint]
 
-        flags = MDB_NOSUBDIR | MDB_WRITEMAP | MDB_NORDAHEAD
+        flags = (MDB_NOSUBDIR | MDB_WRITEMAP | MDB_NORDAHEAD | MDB_NOTLS)
         if sync_mode == 'none':
             flags |= MDB_NOSYNC | MDB_NOMETASYNC
         elif sync_mode == 'meta':

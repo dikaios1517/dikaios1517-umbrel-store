@@ -21,8 +21,10 @@ import socketserver
 import threading
 import time
 import tomllib
+import urllib.parse
 
 import purge
+import feed
 
 RELAY_HOST = '127.0.0.1'
 RELAY_PORT = 7777
@@ -197,7 +199,7 @@ class Handler:
             return
 
         if path_only.startswith('/api/'):
-            self.api(method, path_only, headers, rest)
+            self.api(method, path, headers, rest)
             return
 
         if path_only in ('/', '/index.html') and method == 'GET':
@@ -210,8 +212,11 @@ class Handler:
 
         self.proxy(method, path, headers, rest)
 
-    def api(self, method, path, headers, rest):
+    def api(self, method, full_path, headers, rest):
         try:
+            parts = urllib.parse.urlsplit(full_path)
+            path = parts.path
+            query = urllib.parse.parse_qs(parts.query)
             if path == '/api/status' and method == 'GET':
                 pid = wisp_pid()
                 self.respond(200, {
@@ -236,6 +241,22 @@ class Handler:
                 self.respond(200, purge_scheduler.status)
             elif path == '/api/purge' and method == 'POST':
                 self.respond(200, purge_scheduler.run_now())
+            elif path == '/api/feed/status' and method == 'GET':
+                self.respond(200, feed_engine.status())
+            elif path == '/api/feed' and method == 'GET':
+                self.respond(200, feed_engine.feed(
+                    sort=(query.get('sort') or ['newest'])[0],
+                    days=(query.get('days') or [None])[0],
+                    until=(query.get('until') or [None])[0],
+                    limit=min(int((query.get('limit') or ['50'])[0]), 200),
+                    offset=int((query.get('offset') or ['0'])[0])))
+            elif path == '/api/feed/note' and method == 'GET':
+                eid = (query.get('id') or [''])[0].lower()
+                if len(eid) != 64 or not all(
+                        c in '0123456789abcdef' for c in eid):
+                    self.respond(400, {'error': 'need a 64-char hex event id'})
+                    return
+                self.respond(200, feed_engine.note_detail(eid))
             else:
                 self.respond(404, {'error': 'not found'})
         except Exception as e:  # noqa: BLE001 - surfaced to the GUI
@@ -281,9 +302,12 @@ class ThreadedTCPServer(socketserver.ThreadingTCPServer):
 
 
 if __name__ == '__main__':
-    server = ThreadedTCPServer(('0.0.0.0', GUI_PORT), ThreadedTCPServer)
-
     purge_scheduler = purge.PurgeScheduler(read_config)
     purge_scheduler.start()
+
+    feed_engine = feed.FeedEngine(read_config,
+                                  os.path.dirname(CONFIG_PATH))
+
+    server = ThreadedTCPServer(('0.0.0.0', GUI_PORT), ThreadedTCPServer)
 
     server.serve_forever()

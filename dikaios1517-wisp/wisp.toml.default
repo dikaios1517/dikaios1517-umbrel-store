@@ -88,3 +88,18 @@ purge_after_months = 12
 # (and [management] admin_pubkeys) indefinitely, regardless of age.
 keep_admin_notes = true
 interval_hours = 24
+
+[feed]
+# Feed tab in the management GUI. The GUI reads this relay's LMDB directly
+# and crawls the original poster's read relays (their kind 10002 relay list)
+# for replies and zaps that were never stored here. Replies from authors
+# outside the poster's web-of-trust (their follows and their follows'
+# follows) are hidden unless the reply carries NIP-13 proof-of-work of at
+# least pow_threshold leading zero bits. Zaps are always shown, since they
+# carry a monetary cost.
+enabled = true
+bootstrap_relays = "wss://relay.damus.io,wss://nos.lol,wss://relay.primal.net"
+pow_threshold = 16
+max_depth1 = 200
+cache_ttl_hours = 24
+crawl_timeout_s = 8

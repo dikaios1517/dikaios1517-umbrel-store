@@ -14,7 +14,7 @@ services:
   wisp:
     # Image is built and pushed by the build-apps workflow to
     # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
-    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.6
+    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.7
     init: true
     restart: on-failure
     stop_grace_period: 1m

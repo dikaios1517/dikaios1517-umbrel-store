@@ -73,6 +73,33 @@
     padding: 10px 18px; border-radius: 8px; display: none; font-size: 13px;
   }
   .bool { width: auto !important; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .tab {
+    background: none; border: none; color: var(--muted);
+    padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; border-radius: 0;
+  }
+  .tab:hover { color: var(--text); background: none; }
+  .tab.active { color: var(--teal-bright); border-bottom-color: var(--teal); }
+  .feed-ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .feed-ctl select, .feed-ctl input {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 9px; font-size: 13px;
+  }
+  .note {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+  }
+  .note:hover { border-color: var(--teal); }
+  .note .who { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+  .note .who b { color: var(--teal-bright); }
+  .note .body { white-space: pre-wrap; word-break: break-word; font-size: 13px; }
+  .note .stats { margin-top: 8px; color: var(--muted); font-size: 12px; display: flex; gap: 16px; }
+  .note .stats b { color: var(--teal-bright); font-weight: 600; }
+  .back { margin-bottom: 12px; }
+  .zapline { color: var(--muted); font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .zapline b { color: var(--teal-bright); }
+  .spinner { color: var(--teal-bright); font-size: 12px; display: none; }
 </style>
 </head>
 <body>
@@ -83,6 +110,12 @@
     <span class="muted" id="status-text">checking…</span>
   </header>
 
+  <nav class="tabs">
+    <button class="tab active" data-tab="feed">Feed</button>
+    <button class="tab" data-tab="settings">Relay settings</button>
+  </nav>
+
+  <div id="tab-feed">
   <div class="card">
     <h2>Connect clients</h2>
     <div class="url-row"><span class="muted" style="min-width:110px">Local network</span><code id="url-lan">ws://umbrel:7777</code></div>
@@ -90,6 +123,36 @@
     <p class="muted">The Tor address appears once remote Tor access is enabled in umbrelOS settings. The relay accepts websocket connections on any of these addresses; the same address serves the NIP-11 relay info document and /metrics.</p>
   </div>
 
+  <div class="card">
+    <h2>Feed</h2>
+    <div class="feed-ctl">
+      <select id="feed-sort">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="zapped">Most zapped</option>
+      </select>
+      <select id="feed-days">
+        <option value="">All time</option>
+        <option value="1">Last 24 hours</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <span class="spinner" id="feed-crawl">fetching replies &amp; zaps from authors' relays…</span>
+    </div>
+    <div id="feed-list"><p class="muted">Loading…</p></div>
+    <div class="actions">
+      <button id="feed-more" class="secondary">Load more</button>
+      <button id="feed-reload" class="secondary">Reload</button>
+    </div>
+  </div>
+  <div class="card" id="note-detail" style="display:none">
+    <button class="secondary back" id="note-back">&larr; Back to feed</button>
+    <div id="note-body"></div>
+  </div>
+  </div>
+
+  <div id="tab-settings" style="display:none">
   <div class="card">
     <h2>Retention</h2>
     <p class="muted" id="retention-status">checking…</p>
@@ -108,6 +171,7 @@
       <button id="reset" class="secondary">Discard changes</button>
     </div>
     <p class="muted" id="save-note" style="margin-top:10px"></p>
+  </div>
   </div>
 </div>
 <div id="toast"></div>
@@ -280,6 +344,123 @@ document.getElementById('purge-now').addEventListener('click', async (ev) => {
 });
 
 refreshRetention();
+
+// ---- tabs ----
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-feed').style.display =
+      tab.dataset.tab === 'feed' ? '' : 'none';
+    document.getElementById('tab-settings').style.display =
+      tab.dataset.tab === 'settings' ? '' : 'none';
+  });
+});
+
+// ---- feed ----
+let feedOffset = 0;
+let currentNote = null;
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+function sats(msat) {
+  if (!msat) return '0';
+  return (msat / 1000).toLocaleString(undefined, {maximumFractionDigits: 0});
+}
+
+function ago(ts) {
+  if (!ts) return '';
+  const s = Math.floor(Date.now() / 1000) - ts;
+  if (s < 3600) return Math.max(1, Math.floor(s / 60)) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+
+function who(n) {
+  return (n.profile && (n.profile.name || n.profile.picture)) ?
+    esc(n.profile.name || 'anon') : esc(n.pubkey ? n.pubkey.slice(0, 12) + '…' : 'anon');
+}
+
+async function loadFeed(reset) {
+  if (reset) { feedOffset = 0; document.getElementById('feed-list').innerHTML = '<p class="muted">Loading…</p>'; }
+  const sort = document.getElementById('feed-sort').value;
+  const days = document.getElementById('feed-days').value;
+  try {
+    const notes = await api(`/api/feed?sort=${sort}${days ? '&days=' + days : ''}&offset=${feedOffset}&limit=50`);
+    const list = document.getElementById('feed-list');
+    if (reset) list.innerHTML = '';
+    if (!notes.length && reset) {
+      list.innerHTML = '<p class="muted">No notes found' + (days ? ' in that window' : '') + '.</p>';
+    }
+    for (const n of notes) {
+      const div = document.createElement('div');
+      div.className = 'note';
+      div.innerHTML = `<div class="who"><b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span></div>` +
+        `<div class="body">${esc(n.content.slice(0, 400))}${n.content.length > 400 ? '…' : ''}</div>` +
+        `<div class="stats"><span>⚡ <b>${sats(n.zapMsat)}</b> sats</span><span>💬 <b>${n.replies}</b></span></div>`;
+      div.addEventListener('click', () => openNote(n.id));
+      list.appendChild(div);
+    }
+    feedOffset += notes.length;
+  } catch (e) {
+    if (reset) document.getElementById('feed-list').innerHTML = '<p class="muted">Failed to load: ' + esc(e.message) + '</p>';
+    else toast('Load more failed: ' + e.message, true);
+  }
+}
+
+async function openNote(id) {
+  const card = document.getElementById('note-detail');
+  const body = document.getElementById('note-body');
+  card.style.display = '';
+  body.innerHTML = '<p class="muted">Loading note…</p>';
+  card.scrollIntoView({behavior: 'smooth'});
+  try {
+    const d = await api('/api/feed/note?id=' + id);
+    if (d.error) { body.innerHTML = '<p class="muted">' + esc(d.error) + '</p>'; return; }
+    currentNote = id;
+    let html = `<div class="who"><b>${esc(d.opName || d.pubkey.slice(0, 12) + '…')}</b>` +
+      `<span class="muted">${ago(d.createdAt)}</span></div>` +
+      `<div class="body">${esc(d.content)}</div>` +
+      `<div class="stats"><span>⚡ <b>${sats(d.zapMsat)}</b> sats from ${d.zaps.length} zap${d.zaps.length === 1 ? '' : 's'}</span>` +
+      `<span>💬 <b>${d.replies.length}</b> replies</span>` +
+      (d.filteredReplies ? `<span class="muted">${d.filteredReplies} out-of-trust replies hidden</span>` : '') +
+      `<span class="muted">WoT: ${d.wotSize} pubkeys</span></div>`;
+    html += '<h2 style="margin-top:16px">Zaps</h2>';
+    html += d.zaps.length ? d.zaps.slice(0, 50).map(z =>
+      `<div class="zapline"><b>${sats(z.msat)}</b> sats — ${esc((z.pubkey || '').slice(0, 16))}… ${ago(z.createdAt)}</div>`
+    ).join('') : '<p class="muted">No zap receipts found (on this relay or the author\'s read relays).</p>';
+    html += '<h2 style="margin-top:16px">Replies</h2>';
+    html += d.replies.length ? d.replies.slice(0, 100).map(r =>
+      `<div class="note"><div class="who"><b>${esc((r.profile && r.profile.name) || r.pubkey.slice(0, 12) + '…')}</b>` +
+      `<span class="muted">${ago(r.createdAt)}</span></div><div class="body">${esc(r.content)}</div></div>`
+    ).join('') : '<p class="muted">No replies within the web of trust yet.</p>';
+    html += '<p class="muted">Replies are fetched from the author\'s read relays (their kind 10002 list). Replies from outside the author\'s web of trust are hidden unless they carry NIP-13 proof of work; zaps are always shown.</p>';
+    body.innerHTML = html;
+    document.getElementById('feed-crawl').style.display = d.crawling ? '' : 'none';
+  } catch (e) {
+    body.innerHTML = '<p class="muted">Failed to load: ' + esc(e.message) + '</p>';
+  }
+}
+
+document.getElementById('note-back').addEventListener('click', () => {
+  document.getElementById('note-detail').style.display = 'none';
+  currentNote = null;
+});
+document.getElementById('feed-more').addEventListener('click', () => loadFeed(false));
+document.getElementById('feed-reload').addEventListener('click', () => loadFeed(true));
+document.getElementById('feed-sort').addEventListener('change', () => loadFeed(true));
+document.getElementById('feed-days').addEventListener('change', () => loadFeed(true));
+
+loadFeed(true);
+setInterval(() => {
+  api('/api/feed/status').then(s => {
+    document.getElementById('feed-crawl').style.display = s.crawling ? '' : 'none';
+  }).catch(() => {});
+}, 5000);
 
 loadAll().catch(e => {
   document.getElementById('editor').innerHTML =

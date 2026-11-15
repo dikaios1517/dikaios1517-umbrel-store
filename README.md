@@ -44,6 +44,21 @@ trigger one manually from the GUI's Retention card. The worker deletes
 directly from LMDB using Wisp 0.9.3's exact index layout — re-verify after a
 major Wisp upgrade.
 
+**Feed** (`[feed]`; as of 0.9.7): a tab in the GUI listing the notes on
+*this* relay, sortable by newest, oldest, or most zapped within a chosen
+time window (1/7/30/90 days or all time). Clicking a note opens a detail
+view with zap totals (from local receipts plus the author's relays) and
+replies. Interaction data is crawled from each original poster's kind 10002
+read relays (falling back to the configured `bootstrap_relays`), cached in
+`data/feed-cache.db` (SQLite, TTL `cache_ttl_hours`), and never written back
+to the relay's LMDB. Replies from outside the original poster's web of
+trust — their follows and their follows' follows, built from kind 3 contact
+lists — are hidden unless the reply carries NIP-13 proof of work of
+`pow_threshold` (default 16) or higher; zaps are always included because
+they cost real sats. The crawler is best-effort: unreachable relays time
+out (`crawl_timeout_s`) and the feed falls back to whatever is stored
+locally.
+
 The config file can still be edited directly (Files -> Apps -> Wisp -> data ->
 wisp.toml); values containing double quotes or newlines are rejected on save
 because Wisp's own TOML parser cannot represent them.

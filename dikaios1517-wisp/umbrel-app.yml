@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.6"
+version: "0.9.7"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -32,6 +32,7 @@ description: >-
 
 
   Click the Wisp icon on your Umbrel dashboard to open its management page:
+  browse this relay's notes in the Feed tab (newest, oldest, or most zapped),
   view the relay's local and Tor websocket addresses, edit every wisp.toml
   setting in a form, save, restart the relay, and configure optional retention
   that purges events older than a chosen age. The management page is also
@@ -51,10 +52,14 @@ submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 3000
 gallery: []
 releaseNotes: >-
-  Security fix: Umbrel's app gateway no longer binds port 7777, so the
-  management GUI is unreachable there — port 7777 now serves only the relay
-  (safe to point a Cloudflare tunnel at). The GUI remains on the dashboard
-  icon and at http://umbrel:3000. Relay core remains upstream v0.9.3.
+  New Feed tab in the management GUI: browse this relay's notes sorted by
+  newest, oldest, or most zapped within a time window, with a per-note view
+  showing zap totals and replies. Replies and zaps are pulled from each
+  author's kind 10002 read relays; replies from outside the original
+  poster's web of trust (their follows and their follows' follows) are
+  hidden unless they carry NIP-13 proof of work of 16 or higher; all zaps
+  are shown regardless of web of trust. Relay core remains upstream
+  v0.9.3.
 dependencies: []
 path: ""
 defaultUsername: ""
