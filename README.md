@@ -9,6 +9,43 @@ Currently included:
 | App | Description | Upstream |
 |---|---|---|
 | `dikaios1517-wisp` | Wisp — a fast, lightweight private Nostr relay (v0.9.3), with a built-in management dashboard (client addresses, settings editor, one-click relay restart), ported from [Start9-Community/wisp-startos](https://github.com/Start9-Community/wisp-startos) | [privkeyio/wisp](https://github.com/privkeyio/wisp) |
+| `dikaios1517-lodestone` | Lodestone — a clean-room personal Nostr relay in Python that follows your social graph (3 levels deep), aggregates your community's notes from the relays they write to, and serves a slate/orange management GUI with a feed, live settings, and moderation tools | Built in this repo (`dikaios1517-lodestone/app/`) |
+
+## Lodestone: management GUI and ports
+
+Lodestone is an **inbox relay**: the owner plus the people they follow (and
+their follows, and theirs — graph depth configurable, default 3) may publish
+to it. The graph is discovered automatically from kind 3 contact lists and
+kind 10002 relay lists, and a background aggregator pulls everyone's notes,
+replies, reactions, zaps, long-form posts, polls, pictures, and videos from
+the public relays they actually write to (default: every 5 minutes).
+Strangers' tagged replies/zaps are only accepted above a configurable
+NIP-13 proof-of-work threshold. Retention (default 12 months, owner exempt)
+runs automatically; everything is editable in the GUI.
+
+**Ports:**
+
+- `ws://<umbrel-ip>:7070` — the relay itself, published directly on the host
+  network via Docker. Use this for Nostr clients on LAN/Tailscale and as a
+  tunnel target. The management GUI is **not** reachable on this port (the
+  relay port is websocket + NIP-11 only).
+- `http://umbrel:3001` — the management GUI (manifest port, dashboard icon,
+  and Tor onion all route through Umbrel's app proxy to it).
+
+**GUI tabs:** Feed (newest/oldest/most zapped/most replies/most reactions/
+most interactions, time filters 24h→all-time, display names, inline images,
+copy event ID), Settings (relay info, owner npub, graph depth/refresh,
+aggregation interval, stranger PoW, retention, allowed kinds, limits /
+rate-limits / timeouts / security), Manage (manual purge, kind-1984 reports,
+blacklist/whitelist by npub, rejected words/hashtags).
+
+**NIPs:** 1, 2, 9, 11, 13, 16, 33, 40, 42, 45 (COUNT), 50 (search), 51, 65,
+70 (protected events), 86 (management API — owner-only via NIP-98, served on
+the GUI port at `/nip86`), 98 (auth). NIP-77 negentropy is planned for v2.
+
+Config lives at `data/lodestone.toml` in the app's persistent storage (seeded
+with defaults on first start; the GUI writes it). The relay's Tor address
+appears in the GUI once remote Tor access is enabled in umbrelOS.
 
 ## Wisp: management dashboard and ports
 

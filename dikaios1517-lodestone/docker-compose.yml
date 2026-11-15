@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Forwards the app's Umbrel page / Tor hidden service / LAN port to the
+      # management GUI on port 3001. The relay websocket is NOT proxied here:
+      # clients connect directly to the relay port published below.
+      APP_HOST: dikaios1517-lodestone_lodestone_1
+      APP_PORT: 3001
+      PROXY_AUTH_ADD: "false"
+
+  lodestone:
+    # Image is built and pushed by the build-apps workflow to
+    # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
+    image: ghcr.io/dikaios1517/dikaios1517-lodestone:0.1.0
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+    # Relay published DIRECTLY on the host so LAN clients, Tailscale, and
+    # tunnels (e.g. cloudflared) reach the relay itself, not the app proxy:
+    #   ws://<umbrel-ip>:7070  -> relay (cloudflared tunnel target)
+    #   http://<umbrel-ip>:3001 -> management GUI (via Umbrel's app gateway)
+    # The GUI is NOT published by Docker: Umbrel's gateway already binds the
+    # manifest port (3001) and forwards to app_proxy; publishing it here
+    # would double-bind the port.
+    ports:
+      - "7070:7070"
+    environment:
+      # umbreld injects the app's Tor hostname here (not-enabled.onion unless
+      # remote Tor access is switched on); the GUI displays it.
+      LODESTONE_ONION: ${APP_HIDDEN_SERVICE:-not-enabled.onion}
+    healthcheck:
+      # /bin/sh is dash, which has no /dev/tcp — use the bundled python3.
+      test: ["CMD-SHELL", "python3 -c \"import socket; socket.create_connection(('127.0.0.1', 3001), 2)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

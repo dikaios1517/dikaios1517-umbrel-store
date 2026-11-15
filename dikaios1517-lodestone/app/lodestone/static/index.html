@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lodestone</title>
+<style>
+  :root {
+    --bg: #2c3440;          /* slate gray */
+    --bg-panel: #363f4d;
+    --bg-card: #3c4655;
+    --text: #e8ebee;
+    --text-dim: #9aa5b1;
+    --accent: #f97316;      /* orange */
+    --accent-dim: #c2570e;
+    --border: #4a5568;
+    --danger: #ef4444;
+    --ok: #34d399;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  header {
+    background: var(--bg-panel); border-bottom: 2px solid var(--accent);
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+  }
+  header .logo {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(135deg, #4a5568 0 50%, var(--accent) 50% 100%);
+  }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: 1px; }
+  header h1 span { color: var(--accent); }
+  nav { display: flex; gap: 6px; margin-left: auto; }
+  nav button {
+    background: none; border: 1px solid transparent; color: var(--text-dim);
+    padding: 8px 18px; font-size: 15px; cursor: pointer; border-radius: 6px;
+  }
+  nav button.active { color: var(--accent); border-color: var(--accent); background: var(--bg-card); }
+  main { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+  .panel {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; margin-bottom: 20px;
+  }
+  .panel h2 { margin: 0 0 14px; font-size: 16px; color: var(--accent); }
+  label { display: block; color: var(--text-dim); font-size: 13px; margin: 12px 0 4px; }
+  input[type=text], input[type=number] {
+    width: 100%; background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
+    font-size: 14px;
+  }
+  input:focus { outline: 1px solid var(--accent); }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  button.primary, button.ghost, button.danger, button.mini {
+    border-radius: 6px; cursor: pointer; font-size: 14px;
+  }
+  button.primary { background: var(--accent); color: #fff; border: none; padding: 9px 22px; margin-top: 14px; }
+  button.primary:hover { background: var(--accent-dim); }
+  button.ghost { background: none; border: 1px solid var(--border); color: var(--text); padding: 7px 14px; }
+  button.danger { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; font-size: 12px; }
+  button.mini { background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 3px 8px; font-size: 12px; }
+  button.mini:hover { color: var(--accent); border-color: var(--accent); }
+  .endpoint {
+    background: var(--bg); border: 1px dashed var(--accent-dim); border-radius: 6px;
+    padding: 10px 12px; font-family: monospace; font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    word-break: break-all;
+  }
+  .toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; margin: 3px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 3px 10px; font-size: 13px;
+  }
+  .chip button { background: none; border: none; color: var(--text-dim); cursor: pointer; }
+  .chip button:hover { color: var(--danger); }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .card .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .card .who { font-weight: 600; color: var(--accent); }
+  .card .when { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+  .card .body { font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+  .card img { max-width: 100%; border-radius: 6px; margin-top: 8px; }
+  .card .stats { display: flex; gap: 16px; color: var(--text-dim); font-size: 12px; margin-top: 10px; }
+  .card .stats b { color: var(--text); }
+  select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; font-size: 14px;
+  }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .toolbar label { margin: 0; }
+  .switch { position: relative; width: 40px; height: 20px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; background: var(--border); border-radius: 20px; transition: .2s;
+  }
+  .switch .slider:before {
+    content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px;
+    background: var(--text); border-radius: 50%; transition: .2s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(20px); background: #fff; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-card); border: 1px solid var(--accent); color: var(--text);
+    border-radius: 8px; padding: 10px 20px; display: none; z-index: 10; font-size: 14px;
+  }
+  .muted { color: var(--text-dim); font-size: 13px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"></div>
+  <h1>LODE<span>STONE</span></h1>
+  <nav>
+    <button id="tab-feed" class="active" onclick="show('feed')">Feed</button>
+    <button id="tab-settings" onclick="show('settings')">Settings</button>
+    <button id="tab-manage" onclick="show('manage')">Manage</button>
+  </nav>
+</header>
+<main>
+  <div id="toast"></div>
+
+  <!-- FEED -->
+  <section id="feed">
+    <div class="toolbar">
+      <label>Sort</label>
+      <select id="feed-sort" onchange="loadFeed()">
+        <option value="newest">Newest to oldest</option>
+        <option value="oldest">Oldest to newest</option>
+        <option value="zapped">Most zapped</option>
+        <option value="replies">Most replies</option>
+        <option value="reactions">Most reactions</option>
+        <option value="interactions">Most interactions</option>
+      </select>
+      <label>Range</label>
+      <select id="feed-range" onchange="loadFeed()">
+        <option value="24h">24 hours</option>
+        <option value="7d">7 days</option>
+        <option value="30d">30 days</option>
+        <option value="90d">90 days</option>
+        <option value="1y">1 year</option>
+        <option value="2y">2 years</option>
+        <option value="all" selected>All time</option>
+      </select>
+      <label class="toggle">
+        <span class="switch"><input type="checkbox" id="feed-owner" checked onchange="loadFeed()"></span>
+        <span>Show my notes</span>
+      </label>
+      <button class="ghost" onclick="loadFeed()">Refresh</button>
+    </div>
+    <div id="feed-list"></div>
+    <div style="text-align:center; margin: 12px;">
+      <button class="ghost" id="feed-more" onclick="feedPage(); loadFeed()">Load more</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="hidden">
+    <div class="panel">
+      <h2>Relay endpoints</h2>
+      <label>Local websocket endpoint</label>
+      <div class="endpoint"><span id="ep-ws">…</span>
+        <button class="mini" onclick="copyText(document.getElementById('ep-ws').textContent)">Copy</button></div>
+      <label>Tor (.onion) address</label>
+      <div class="endpoint"><span id="ep-onion">…</span>
+        <button class="mini" onclick="copyText(document.getElementById('ep-onion').textContent)">Copy</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Relay identity</h2>
+      <div class="row">
+        <div><label>Relay name</label><input type="text" id="s-name"></div>
+        <div><label>Relay description</label><input type="text" id="s-desc"></div>
+      </div>
+      <label>Owner npub (updates the social graph root)</label>
+      <input type="text" id="s-npub" placeholder="npub1…">
+      <button class="primary" onclick="saveIdentity()">Save identity</button>
+    </div>
+
+    <div class="panel">
+      <h2>Social graph &amp; aggregation</h2>
+      <div class="row">
+        <div><label>Graph depth (follows-of-follows)</label><input type="number" id="s-depth" min="1" max="4"></div>
+        <div><label>Graph refresh (hours)</label><input type="number" id="s-refresh" min="1"></div>
+      </div>
+      <div class="row">
+        <div><label>Aggregation interval (minutes)</label><input type="number" id="s-agint" min="1"></div>
+        <div><label>PoW bits for strangers' replies/zaps</label><input type="number" id="s-pow" min="0" max="32"></div>
+      </div>
+      <button class="primary" onclick="saveGraph()">Save graph settings</button>
+    </div>
+
+    <div class="panel">
+      <h2>Retention</h2>
+      <div class="row">
+        <div><label>Keep notes for (months)</label><input type="number" id="s-months" min="1"></div>
+        <div style="flex:none; padding-top: 24px;">
+          <label class="toggle"><span class="switch"><input type="checkbox" id="s-ownerkeep"></span>
+          <span>Keep my own notes indefinitely</span></label>
+        </div>
+      </div>
+      <button class="primary" onclick="saveRetention()">Save retention</button>
+    </div>
+
+    <div class="panel">
+      <h2>Aggregated note kinds</h2>
+      <div id="kinds-list"></div>
+      <div class="row" style="margin-top:8px;">
+        <input type="number" id="kind-input" placeholder="kind number" min="0" max="39999">
+        <button class="ghost" style="flex:none;" onclick="addKind()">Add kind</button>
+      </div>
+      <button class="primary" onclick="saveKinds()">Save kinds</button>
+    </div>
+
+    <div class="panel">
+      <h2>Limits</h2>
+      <div class="row">
+        <div><label>Max content length</label><input type="number" id="l-max_content_length"></div>
+        <div><label>Max message length</label><input type="number" id="l-max_message_length"></div>
+      </div>
+      <div class="row">
+        <div><label>Max event tags</label><input type="number" id="l-max_event_tags"></div>
+        <div><label>Max subscriptions</label><input type="number" id="l-max_subscriptions"></div>
+      </div>
+      <div class="row">
+        <div><label>Max filters</label><input type="number" id="l-max_filters"></div>
+        <div><label>Max limit</label><input type="number" id="l-max_limit"></div>
+      </div>
+      <div class="row">
+        <div><label>Min PoW difficulty (relay-wide)</label><input type="number" id="l-min_pow_difficulty"></div>
+        <div><label>Max sub id length</label><input type="number" id="l-max_subid_length"></div>
+      </div>
+      <button class="primary" onclick="saveSection('limits', 'l')">Save limits</button>
+    </div>
+
+    <div class="panel">
+      <h2>Rate limits &amp; timeouts</h2>
+      <div class="row">
+        <div><label>Events / min / IP</label><input type="number" id="r-events_per_minute_per_ip"></div>
+        <div><label>Connections per IP</label><input type="number" id="r-connections_per_ip"></div>
+      </div>
+      <div class="row">
+        <div><label>Client idle timeout (s)</label><input type="number" id="t-client_idle_s"></div>
+        <div><label>Upstream connect timeout (s)</label><input type="number" id="t-upstream_connect_s"></div>
+      </div>
+      <div class="row">
+        <div><label>Upstream read timeout (s)</label><input type="number" id="t-upstream_read_s"></div>
+        <div></div>
+      </div>
+      <button class="primary" onclick="saveRateTimeout()">Save rate limits &amp; timeouts</button>
+    </div>
+
+    <div class="panel">
+      <h2>Security</h2>
+      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-public"></span>
+        <span>Allow public reads</span></label>
+      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-auth"></span>
+        <span>Require NIP-42 auth for writes</span></label>
+      <button class="primary" onclick="saveSecurity()">Save security</button>
+    </div>
+  </section>
+
+  <!-- MANAGE -->
+  <section id="manage" class="hidden">
+    <div class="panel">
+      <h2>Retention purge</h2>
+      <p class="muted">Deletes every stored note older than the retention window (owner exempt when configured).</p>
+      <button class="primary" style="margin-top:0;" onclick="runPurge()">Run purge now</button>
+      <span id="purge-result" class="muted" style="margin-left:12px;"></span>
+    </div>
+
+    <div class="panel">
+      <h2>Reports (kind 1984)</h2>
+      <div id="reports-list"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Blacklist</h2>
+      <p class="muted">Blocked npubs: their events are never stored.</p>
+      <div id="blacklist-list"></div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="blacklist-input" placeholder="npub1…">
+        <button class="ghost" style="flex:none;" onclick="addToList('blacklist')">Blacklist</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Whitelist</h2>
+      <p class="muted">Npubs outside the social graph allowed to post to this relay.</p>
+      <div id="whitelist-list"></div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="whitelist-input" placeholder="npub1…">
+        <button class="ghost" style="flex:none;" onclick="addToList('whitelist')">Whitelist</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Rejected words &amp; hashtags</h2>
+      <label>Notes containing these words are rejected</label>
+      <div id="words-list"></div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="words-input" placeholder="word">
+        <button class="ghost" style="flex:none;" onclick="addFilter('words')">Add</button>
+      </div>
+      <label>Notes tagged with these hashtags are rejected</label>
+      <div id="hashtags-list"></div>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="hashtags-input" placeholder="hashtag">
+        <button class="ghost" style="flex:none;" onclick="addFilter('hashtags')">Add</button>
+      </div>
+      <button class="primary" onclick="saveFilters()">Save word filters</button>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2500);
+}
+function show(tab) {
+  for (const t of ['feed', 'settings', 'manage']) {
+    $('tab-' + t).classList.toggle('active', t === tab);
+    $(t).classList.toggle('hidden', t !== tab);
+  }
+  if (tab === 'feed') loadFeed();
+  if (tab === 'settings') loadSettings();
+  if (tab === 'manage') loadManage();
+}
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied')).catch(() => toast(text));
+}
+
+let feedOffset = 0, feedTotal = 0, currentNotes = [];
+function feedPage() { feedOffset += 50; }
+function fmtAgo(ts) {
+  const d = Date.now() / 1000 - ts;
+  const u = [[86400*365,'y'],[86400*30,'mo'],[86400,'d'],[3600,'h'],[60,'m']];
+  for (const [s, l] of u) if (d >= s) return Math.floor(d / s) + l;
+  return Math.max(1, Math.floor(d)) + 's';
+}
+function loadFeed() {
+  const params = new URLSearchParams({
+    sort: $('feed-sort').value, range: $('feed-range').value,
+    owner: $('feed-owner').checked ? '1' : '0', offset: feedOffset, limit: 50,
+  });
+  fetch('/api/feed?' + params).then(r => r.json()).then(data => {
+    feedTotal = data.total;
+    const list = $('feed-list');
+    const notes = feedOffset ? currentNotes.concat(data.notes) : data.notes;
+    currentNotes = notes;
+    $('feed-more').style.display = (feedOffset + 50 < data.total) ? '' : 'none';
+    list.innerHTML = notes.map(n => {
+      const who = esc(n.display_name || n.name || n.pubkey.slice(0, 12) + '…');
+      const body = renderBody(n.content);
+      return `<div class="card">
+        <div class="head">
+          <span class="who">${who}</span>
+          <span class="when">${fmtAgo(n.created_at)} ago · kind ${n.kind}</span>
+          <button class="mini" onclick="copyText('${n.id}')">Copy ID</button>
+        </div>
+        <div class="body">${body}</div>
+        <div class="stats">
+          <span>💬 <b>${n.replies_count}</b></span>
+          <span>♻️ <b>${n.reactions_count}</b></span>
+          <span>⚡ <b>${n.zaps_count}</b></span>
+          <span>Σ <b>${n.interactions_count}</b></span>
+        </div>
+      </div>`;
+    }).join('') || '<p class="muted">No notes yet. The aggregator fills the feed as it pulls from your social graph.</p>';
+  }).catch(() => toast('Feed load failed'));
+}
+function renderBody(text) {
+  let html = esc(text);
+  // image links -> inline images
+  html = html.replace(/(https?:\/\/[^\s<>"']+\.(?:png|jpe?g|gif|webp|avif)(?:\?[^\s<>"']*)?)/gi,
+    m => `<img src="${m}" alt="image" loading="lazy">`);
+  // remaining links -> anchors
+  html = html.replace(/(^|[\s>])(https?:\/\/[^\s<]+"']*(?<!<\/a>))/g,
+    m => m);  // keep simple: links stay as text except images
+  return html;
+}
+
+function loadSettings() {
+  fetch('/api/status').then(r => r.json()).then(s => {
+    $('ep-ws').textContent = s.relay_endpoint;
+    $('ep-onion').textContent = s.onion_address || 'not available in this deployment';
+  });
+  fetch('/api/config').then(r => r.json()).then(c => {
+    $('s-name').value = c.relay.name || '';
+    $('s-desc').value = c.relay.description || '';
+    $('s-npub').value = c.owner_npub || '';
+    $('s-depth').value = c.graph.depth;
+    $('s-refresh').value = c.graph.refresh_hours;
+    $('s-agint').value = c.aggregation.interval_minutes;
+    $('s-pow').value = c.aggregation.pow_threshold;
+    $('s-months').value = c.retention.months;
+    $('s-ownerkeep').checked = c.retention.owner_kept_indefinitely;
+    for (const k in c.limits) $('l-' + k).value = c.limits[k];
+    $('r-events_per_minute_per_ip').value = c.rate_limits.events_per_minute_per_ip;
+    $('r-connections_per_ip').value = c.rate_limits.connections_per_ip;
+    $('t-client_idle_s').value = c.timeouts.client_idle_s;
+    $('t-upstream_connect_s').value = c.timeouts.upstream_connect_s;
+    $('t-upstream_read_s').value = c.timeouts.upstream_read_s;
+    $('sec-public').checked = c.security.allow_public_reads;
+    $('sec-auth').checked = c.security.require_auth_writes;
+    window._kinds = c.kinds;
+    renderChips('kinds-list', c.kinds, 'kinds');
+  });
+}
+function saveIdentity() {
+  post('/api/config', {
+    relay: { name: $('s-name').value, description: $('s-desc').value },
+    owner: { npub: $('s-npub').value.trim() },
+  }).then(ok => { if (ok) toast('Identity saved — graph re-crawls on schedule'); });
+}
+function saveGraph() {
+  post('/api/config', {
+    graph: { depth: +$('s-depth').value, refresh_hours: +$('s-refresh').value },
+    aggregation: { interval_minutes: +$('s-agint').value, pow_threshold: +$('s-pow').value },
+  }).then(ok => ok && toast('Graph settings saved'));
+}
+function saveRetention() {
+  post('/api/config', {
+    retention: { months: +$('s-months').value,
+                 owner_kept_indefinitely: $('s-ownerkeep').checked },
+  }).then(ok => ok && toast('Retention saved'));
+}
+function saveKinds() {
+  post('/api/config', { kinds: window._kinds }).then(ok => ok && toast('Kinds saved'));
+}
+function addKind() {
+  const v = parseInt($('kind-input').value, 10);
+  if (isNaN(v)) return toast('Enter a kind number');
+  if (!window._kinds.includes(v)) window._kinds.push(v);
+  window._kinds.sort((a, b) => a - b);
+  $('kind-input').value = '';
+  renderChips('kinds-list', window._kinds, 'kinds');
+}
+function saveRateTimeout() {
+  post('/api/config', {
+    rate_limits: { events_per_minute_per_ip: +$('r-events_per_minute_per_ip').value,
+                   connections_per_ip: +$('r-connections_per_ip').value },
+    timeouts: { client_idle_s: +$('t-client_idle_s').value,
+                upstream_connect_s: +$('t-upstream_connect_s').value,
+                upstream_read_s: +$('t-upstream_read_s').value },
+  }).then(ok => ok && toast('Saved'));
+}
+function saveSecurity() {
+  post('/api/config', {
+    security: { allow_public_reads: $('sec-public').checked,
+                require_auth_writes: $('sec-auth').checked },
+  }).then(ok => ok && toast('Security saved'));
+}
+function saveSection(section, prefix) {
+  const out = {};
+  for (const el of document.querySelectorAll(`[id^=${prefix}-]`)) {
+    if (el.id.startsWith(prefix + '-')) out[el.id.slice(prefix.length)] = +el.value;
+  }
+  post('/api/config', { [section]: out }).then(ok => ok && toast(section + ' saved'));
+}
+function post(url, body) {
+  return fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify(body) })
+    .then(async r => { const j = await r.json();
+      if (!r.ok || j.error) { toast('Error: ' + (j.error || r.status)); return false; }
+      return true; });
+}
+function renderChips(elId, items, kind) {
+  $(elId).innerHTML = items.map(v =>
+    `<span class="chip">${esc(String(v))}<button onclick="removeChip('${elId}','${String(v).replace(/'/g, "\\'")}')">✕</button></span>`).join('');
+}
+function removeChip(elId, value) {
+  if (elId === 'kinds-list') {
+    window._kinds = window._kinds.filter(v => String(v) !== value);
+    renderChips('kinds-list', window._kinds, 'kinds');
+  } else if (elId === 'blacklist-list' || elId === 'whitelist-list') {
+    const lst = elId === 'blacklist-list' ? 'blacklist' : 'whitelist';
+    fetch('/api/' + lst, { method: 'DELETE', headers: {'Content-Type': 'application/json'},
+                           body: JSON.stringify({ npub: value }) })
+      .then(() => refreshLists());
+  } else {
+    window._filters[elId === 'words-list' ? 'words' : 'hashtags'] =
+      window._filters[elId === 'words-list' ? 'words' : 'hashtags'].filter(v => v !== value);
+    renderChips(elId, window._filters[elId === 'words-list' ? 'words' : 'hashtags']);
+  }
+}
+
+async function loadManage() {
+  const [reports, filters] = await Promise.all([
+    fetch('/api/reports').then(r => r.json()), fetch('/api/filters').then(r => r.json())]);
+  $('reports-list').innerHTML = reports.reports.map(r =>
+    `<div class="card">
+      <div class="head"><span class="who">${esc(r.pubkey.slice(0, 10))}…</span>
+        <span class="when">${fmtAgo(r.created_at)} ago</span></div>
+      <div class="body">${esc(r.content) || '<i class="muted">no comment</i>'}</div>
+      <div class="muted">reports: ${r.targets.map(t => t.slice(0, 10) + '…').join(', ')}</div>
+      <div style="margin-top:8px;">
+        <button class="danger" onclick="reportAction('${r.id}','delete_target')">Delete reported note</button>
+        <button class="mini" style="margin-left:6px;" onclick="reportAction('${r.id}','dismiss')">Dismiss</button>
+      </div>
+    </div>`).join('') || '<p class="muted">No reports received.</p>';
+  window._filters = filters;
+  renderChips('words-list', filters.words || []);
+  renderChips('hashtags-list', filters.hashtags || []);
+  refreshLists();
+}
+function reportAction(id, action) {
+  post('/api/reports/action', { id, action }).then(ok => ok && loadManage());
+}
+function addFilter(which) {
+  const v = $(which + '-input').value.trim();
+  if (!v) return;
+  window._filters[which].push(v.replace(/^#/, ''));
+  $(which + '-input').value = '';
+  renderChips(which + '-list', window._filters[which]);
+}
+function saveFilters() {
+  post('/api/filters', { words: window._filters.words, hashtags: window._filters.hashtags })
+    .then(ok => ok && toast('Word filters saved'));
+}
+function refreshLists() {
+  fetch('/api/config').then(r => r.json()).then(c => {
+    renderChips('blacklist-list', c.blacklist_npubs || []);
+    renderChips('whitelist-list', c.whitelist_npubs || []);
+  });
+}
+function addToList(lst) {
+  const v = $(lst + '-input').value.trim();
+  if (!v) return toast('Enter an npub');
+  post('/api/' + lst, { npub: v }).then(ok => {
+    if (ok) { $(lst + '-input').value = ''; refreshLists(); toast(lst + ' updated'); }
+  });
+}
+function runPurge() {
+  $('purge-result').textContent = 'purging…';
+  post('/api/purge', {}).then(ok => ok && fetch('/api/status').then(r => r.json()).then(s => {
+    $('purge-result').textContent = s.last_purge
+      ? `last purge: ${s.last_purge.deleted} notes deleted` : '';
+    toast('Purge complete');
+  }));
+}
+loadFeed();
+</script>
+</body>
+</html>

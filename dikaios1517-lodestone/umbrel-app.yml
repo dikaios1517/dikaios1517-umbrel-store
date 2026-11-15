@@ -1,0 +1,87 @@
+manifestVersion: 1
+id: dikaios1517-lodestone
+category: social
+name: Lodestone
+version: "0.1.0"
+tagline: A personal Nostr relay that follows your social graph
+icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-lodestone/icon.png
+description: >-
+  Lodestone is a personal Nostr relay written in Python. It is an inbox relay:
+  you and the people you follow (your social graph, discovered automatically
+  from your follows, their follows, and theirs — three levels deep by
+  default) can post to it, and it quietly aggregates your community's notes,
+  replies, reactions, zaps, long-form posts, polls, pictures, and videos from
+  the public relays they actually write to, refreshing every few minutes.
+
+
+  Step 1. Install Lodestone and wait for it to start.
+
+
+  Step 2. Add your relay URL in your Nostr client:
+
+  - On your home network or over Tailscale: ws://umbrel:7070 (connects
+  directly to the relay, ideal for Cloudflare tunnels or other reverse
+  proxies)
+
+  - Over Tor: use the onion address shown on the Lodestone app page
+  (ws://<onion>)
+
+  - Remotely without Tor: expose port 7070 through your router or VPN and use
+  ws://<your-address>:7070
+
+
+  Your owner identity is set by npub in the settings; graph members can write
+  freely, and strangers' notes are only accepted if they carry sufficient
+  proof-of-work. Replies, zap receipts, and poll responses that tag you or
+  your graph are collected even when they live on other relays, so the feed
+  stays complete. Retention is configurable (12 months by default) with the
+  owner's own notes exempt, and relay-wide word/hashtag filters, rate limits,
+  timeouts, and NIP-13 proof-of-work are all adjustable.
+
+
+  Click the Lodestone icon on your Umbrel dashboard to open its management
+  page (dark slate, orange accents):
+
+  - Feed: your graph's notes, sortable newest/oldest/most zapped/most
+  replies/most reactions/most interactions, filtered by 24h to all-time,
+  with display names, inline images, and one-tap event-ID copy.
+
+  - Settings: relay name/description, owner npub, graph depth and refresh
+  interval, aggregation interval and stranger proof-of-work threshold,
+  retention, allowed event kinds, and the limits/rate-limits/timeouts/
+  security sections.
+
+  - Manage: manual retention purge, kind-1984 reports, blacklist and
+  whitelist by npub, and rejected word/hashtag lists.
+
+
+  The management page is also served directly at http://umbrel:3001; the
+  relay itself listens directly on port 7070. The config file can still be
+  edited directly at Files -> Apps -> Lodestone -> data -> lodestone.toml.
+
+
+  Implements NIPs 1, 2, 9, 11, 13, 16, 33, 40, 42, 45 (COUNT), 50 (search),
+  51, 65, 70, 86 (management API), and 98 auth. Lodestone is clean-room
+  software — no code from any other relay.
+
+
+  This package runs Lodestone v0.1.0.
+developer: Dikaios1517
+website: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+repo: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+support: https://github.com/Dikaios1517/dikaios1517-umbrel-store/issues
+submitter: Kris Kord
+submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
+port: 3001
+gallery: []
+releaseNotes: >-
+  First release: social-graph inbox relay with automatic per-author relay
+  discovery, five-minute aggregation sweeps, stranger proof-of-work gating,
+  calendar-month retention with owner exemption, and a slate/orange
+  management GUI with a feed, live settings, and moderation tools.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: false
+torOnly: false
