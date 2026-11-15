@@ -51,6 +51,7 @@ REPLIES_PER_RELAY = 100
 ZAPS_PER_RELAY = 200
 RELAYS_PER_NOTE = 4
 AUTHORS_PER_REQ = 100
+MAX_PROFILE_RELAYS = 8   # author-relay connections per profile enrichment run
 MAX_CANDIDATES = 5000
 
 
@@ -366,6 +367,8 @@ class FeedEngine:
         self._status_lock = threading.Lock()
         self._env_lock = threading.Lock()
         self._env_handle = None
+        self._profile_lock = threading.Lock()
+        self._profile_busy = False
         self._refresh_queue = queue.Queue()
         self._stop = threading.Event()
         threading.Thread(target=self._worker, daemon=True).start()
@@ -499,6 +502,114 @@ class FeedEngine:
                 continue
         db.commit()
         return found
+
+    def _crawl_kind0(self, db, pubkeys, relays, timeout):
+        """Fetch kind 0 for a batch of pubkeys, trying each relay once.
+        Returns the pubkeys whose profile was found and cached."""
+        found = set()
+        todo = [p for p in pubkeys if isinstance(p, str) and len(p) == 64]
+        for url in relays:
+            if not todo:
+                break
+            try:
+                rc = NostrRelay(url, timeout=timeout)
+                rc.connect()
+                for ej in rc.query([{'kinds': [0], 'authors': todo,
+                                     'limit': len(todo)}]):
+                    pk = ej.get('pubkey')
+                    if ej.get('kind') == 0 and pk in todo:
+                        self._cache_put(db, ej, url)
+                        todo.remove(pk)
+                        found.add(pk)
+                rc.close()
+            except (OSError, ConnectionError, TimeoutError, ValueError):
+                continue
+        db.commit()
+        return found
+
+    def _author_read_relays(self, db, pk, cfg, crawl_missing):
+        """Cached kind 10002 read relays for an author; optionally crawled."""
+        row = db.execute('SELECT tags FROM events WHERE pubkey=? AND '
+                         'kind=10002 ORDER BY created_at DESC LIMIT 1',
+                         (pk,)).fetchone()
+        if row is None and crawl_missing:
+            for url in cfg['bootstrap'][:2]:
+                try:
+                    rc = NostrRelay(url, timeout=cfg['timeout'])
+                    rc.connect()
+                    for ej in rc.query([{'kinds': [10002], 'authors': [pk],
+                                         'limit': 1}]):
+                        if ej.get('kind') == 10002:
+                            self._cache_put(db, ej, url)
+                    rc.close()
+                except (OSError, ConnectionError, TimeoutError, ValueError):
+                    continue
+            row = db.execute('SELECT tags FROM events WHERE pubkey=? AND '
+                             'kind=10002 ORDER BY created_at DESC LIMIT 1',
+                             (pk,)).fetchone()
+        if row is None:
+            return []
+        try:
+            tags = json.loads(row[0])
+        except ValueError:
+            return []
+        relays = read_relays_from_10002({'tags': tags})
+        return [r for r in relays
+                if r not in ('ws://umbrel:7777', 'ws://127.0.0.1:7777',
+                             'ws://localhost:7777')][:4]
+
+    def _enrich_profiles(self, env, db, pubkeys, cfg):
+        """Fetch kind 0 for pubkeys with no profile yet. Order per spec:
+        each author's kind 10002 read relays first, then the [feed]
+        bootstrap fallbacks. Bounded so a page of strangers can't pin the
+        GUI: at most MAX_PROFILE_RELAYS author-relay connections plus the
+        bootstrap sweep, each with the configured timeout."""
+        todo = []
+        for pk in dict.fromkeys(pubkeys):
+            if isinstance(pk, str) and len(pk) == 64 and \
+                    self._profile(env, db, pk)['source'] is None:
+                todo.append(pk)
+        if not todo:
+            return 0
+        # author relay lists (crawled where absent), grouped per relay
+        relays_by_author = {pk: self._author_read_relays(db, pk, cfg,
+                                                         crawl_missing=True)
+                            for pk in todo}
+        author_relays = {}   # relay -> authors to ask there
+        for pk, rels in relays_by_author.items():
+            for r in rels:
+                author_relays.setdefault(r, []).append(pk)
+        found = set()
+        # their own relays first: most-connected relay asks for all its
+        # authors in one subscription
+        for r in sorted(author_relays, key=lambda u: -len(author_relays[u])) \
+                [:MAX_PROFILE_RELAYS]:
+            authors = [p for p in author_relays[r] if p not in found]
+            found |= self._crawl_kind0(db, authors, [r], cfg['timeout'])
+        # fallback relays for everyone still missing
+        still = [p for p in todo if p not in found]
+        if still:
+            found |= self._crawl_kind0(db, still, cfg['bootstrap'][:3],
+                                       min(cfg['timeout'], 5.0))
+        return len(found)
+
+    def _enrich_profiles_bg(self, env, pubkeys):
+        """Bound background profile fetch; deduplicates concurrent calls."""
+        with self._profile_lock:
+            if self._profile_busy:
+                return
+            self._profile_busy = True
+        def run():
+            db = self._db()
+            try:
+                self._enrich_profiles(env, db, pubkeys, self._cfg())
+            except Exception:  # noqa: BLE001 - background best-effort
+                pass
+            finally:
+                db.close()
+                with self._profile_lock:
+                    self._profile_busy = False
+        threading.Thread(target=run, daemon=True).start()
 
     def _follows_of(self, env, db, pk, cfg):
         """Follow set for one pubkey: local store, cache, then crawl."""
@@ -799,6 +910,13 @@ class FeedEngine:
                     'replies': replies,
                     'profile': self._profile(env, db, c['pubkey']),
                 })
+            if self._cfg()['enabled']:
+                missing = [c['pubkey'] for c in out
+                           if c['profile']['source'] is None]
+                if missing:
+                    # Names appear on the next page view/refetch once the
+                    # background crawl caches the authors' kind 0s.
+                    self._enrich_profiles_bg(env, missing)
             return out
         finally:
             db.close()
@@ -869,6 +987,12 @@ class FeedEngine:
             rrow = db.execute('SELECT v FROM meta WHERE k=?',
                               (f'refresh:{event_id}',)).fetchone()
 
+            if cfg['enabled']:
+                reply_pks = [e['pubkey'] for e in kept
+                             if self._profile(env, db, e['pubkey'])['source']
+                             is None]
+                if reply_pks:
+                    self._enrich_profiles_bg(env, reply_pks)
             return {
                 'id': event_id, 'pubkey': op, 'opName': op_name,
                 'content': note.get('content', ''),

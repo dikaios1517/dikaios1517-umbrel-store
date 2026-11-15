@@ -373,6 +373,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 // ---- feed ----
 let feedOffset = 0;
 let currentNote = null;
+let profileFetchToken = 0;
 
 function esc(s) {
   const d = document.createElement('div');
@@ -418,6 +419,7 @@ async function loadFeed(reset) {
   const sort = document.getElementById('feed-sort').value;
   const days = document.getElementById('feed-days').value;
   const hideAdmin = document.getElementById('feed-hide-admin').checked;
+  const pageStart = feedOffset;
   try {
     const notes = await api(`/api/feed?sort=${sort}${days ? '&days=' + days : ''}` +
       `${hideAdmin ? '&hide_admin=1' : ''}&offset=${feedOffset}&limit=50`);
@@ -427,27 +429,58 @@ async function loadFeed(reset) {
       list.innerHTML = '<p class="muted">No notes found' + (days ? ' in that window' : '') + '.</p>';
     }
     for (const n of notes) {
-      const div = document.createElement('div');
-      div.className = 'note';
-      const body = document.createElement('div');
-      body.className = 'body';
-      body.innerHTML = rich(n.content.length > 400 ?
-        n.content.slice(0, 400) + '…' : n.content);
-      div.innerHTML = `<div class="who"><b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span></div>`;
-      div.appendChild(body);
-      div.insertAdjacentHTML('beforeend',
-        `<div class="stats"><span>⚡ <b>${sats(n.zapMsat)}</b> sats</span><span>💬 <b>${n.replies}</b></span></div>`);
-      div.addEventListener('click', (ev) => {
-        if (ev.target.closest('a')) return;  // don't open the note when a link is clicked
-        openNote(n.id);
-      });
+      const div = makeNoteCard(n);
       list.appendChild(div);
     }
     feedOffset += notes.length;
+    // Authors with no profile yet are fetched in the background from their
+    // kind 10002 relays; refresh this page once so names replace the hex.
+    if (notes.some(n => !n.profile || n.profile.source === null)) {
+      const token = ++profileFetchToken;
+      setTimeout(async () => {
+        if (token !== profileFetchToken) return;  // a newer load superseded this
+        try {
+          const fresh = await api(`/api/feed?sort=${sort}${days ? '&days=' + days : ''}` +
+            `${hideAdmin ? '&hide_admin=1' : ''}&offset=${pageStart}&limit=50`);
+          if (token !== profileFetchToken || !fresh.length) return;
+          const list2 = document.getElementById('feed-list');
+          if (pageStart === 0) list2.innerHTML = '';
+          for (const n of fresh) {
+            const old = list2.querySelector(`[data-note-id="${n.id}"]`);
+            if (old) {
+              old.querySelector('.who').innerHTML =
+                `<b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span>`;
+            } else if (pageStart === 0) {
+              const div = makeNoteCard(n);
+              div.dataset.noteId = n.id;
+              list2.appendChild(div);
+            }
+          }
+        } catch (e) { /* best effort */ }
+      }, 6000);
+    }
   } catch (e) {
     if (reset) document.getElementById('feed-list').innerHTML = '<p class="muted">Failed to load: ' + esc(e.message) + '</p>';
     else toast('Load more failed: ' + e.message, true);
   }
+}
+
+function makeNoteCard(n) {
+  const div = document.createElement('div');
+  div.className = 'note';
+  div.dataset.noteId = n.id;
+  const body = document.createElement('div');
+  body.className = 'body';
+  body.innerHTML = rich(n.content.length > 400 ? n.content.slice(0, 400) + '…' : n.content);
+  div.innerHTML = `<div class="who"><b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span></div>`;
+  div.appendChild(body);
+  div.insertAdjacentHTML('beforeend',
+    `<div class="stats"><span>⚡ <b>${sats(n.zapMsat)}</b> sats</span><span>💬 <b>${n.replies}</b></span></div>`);
+  div.addEventListener('click', (ev) => {
+    if (ev.target.closest('a')) return;
+    openNote(n.id);
+  });
+  return div;
 }
 
 async function openNote(id) {

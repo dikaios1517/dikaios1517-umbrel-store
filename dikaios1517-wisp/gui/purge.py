@@ -159,20 +159,24 @@ class Lmdb:
             raise LmdbError('mdb_cursor_open failed')
         try:
             k, v = self._Val(), self._Val()
-            op, first_key = MDB_FIRST, None
+            op = MDB_FIRST
             if start_key is not None:
+                # The search key must live in the KEY MDB_val itself —
+                # LMDB overwrites it with the found key on success.
+                k.mv_size = len(start_key)
+                k.mv_data = ctypes.cast(ctypes.c_char_p(start_key),
+                                        ctypes.c_void_p)
                 op = MDB_SET_RANGE
-                first_key = start_key
             while True:
-                rc = self.c.mdb_cursor_get(cur, ctypes.byref(k), ctypes.byref(v), op)
+                rc = self.c.mdb_cursor_get(cur, ctypes.byref(k),
+                                           ctypes.byref(v), op)
                 if rc != 0:
                     return
                 op = MDB_NEXT
                 key = ctypes.string_at(k.mv_data, k.mv_size)
-                if first_key is not None:
-                    first_key = None
-                    if key == start_key:  # resume marker itself: already processed
-                        continue
+                if start_key is not None and key == start_key:
+                    start_key = None  # resume marker: already processed
+                    continue
                 yield (key, ctypes.string_at(v.mv_data, v.mv_size))
         finally:
             self.c.mdb_cursor_close(cur)
@@ -250,7 +254,6 @@ def purge_once(env_path, map_size_mb, sync_mode, cutoff_ts, keep_admin=True,
             # --- read phase: collect a batch of candidates oldest-first ---
             txn = lmdb.txn_begin(readonly=True)
             candidates = []
-            last_key = None
             try:
                 idx_created = lmdb.dbi_open(txn, 'idx:created')
                 events = lmdb.dbi_open(txn, 'events')
@@ -263,8 +266,7 @@ def purge_once(env_path, map_size_mb, sync_mode, cutoff_ts, keep_admin=True,
                         reached_end = True
                         break
                     if len(candidates) >= BATCH_SIZE:
-                        last_key = key
-                        break  # txn must end; resume from this key
+                        break  # txn must end; resume after the last candidate
                     js = lmdb.get(txn, events, event_id)
                     if js is None:
                         # already gone but index entry remains: just clean the index
@@ -287,9 +289,11 @@ def purge_once(env_path, map_size_mb, sync_mode, cutoff_ts, keep_admin=True,
             finally:
                 lmdb.c.mdb_txn_abort(txn)
 
-            if last_key is not None:
-                resume_after = last_key
-            elif candidates:
+            if candidates:
+                # Resume from the last PROCESSED key: cursor_iter skips the
+                # resume key itself (it was handled), so the next pass picks
+                # up exactly where this one ended. Using the first *unprocessed*
+                # key here silently dropped one event per batch boundary.
                 resume_after = candidates[-1][0]
             if not candidates:
                 return {'deleted': deleted, 'skippedAdmin': skipped_admin,

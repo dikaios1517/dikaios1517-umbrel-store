@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.8"
+version: "0.9.10"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -52,12 +52,13 @@ submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 3000
 gallery: []
 releaseNotes: >-
-  Feed tab improvements: image URLs in notes now render as images and other
-  URLs become clickable links; new toggle to hide the admin's own notes;
-  time windows extended to 1 year, 2 years, and all time. Fixed: the
-  settings tab now always shows the [retention] and [feed] sections even
-  for configs created before those sections existed (defaults are filled
-  in on save). Relay core remains upstream v0.9.3.
+  Fixed retention purge only deleting the first 500 old notes per run (a
+  broken resume cursor made every pass after the first find nothing; one
+  manual purge now removes everything past the retention cutoff, except
+  admin notes when "keep admin notes" is on). The feed now shows display
+  names: missing profiles are fetched in the background from each author's
+  kind 10002 read relays first, then from the configured fallback relays,
+  and the page refreshes itself once the names arrive.
 dependencies: []
 path: ""
 defaultUsername: ""

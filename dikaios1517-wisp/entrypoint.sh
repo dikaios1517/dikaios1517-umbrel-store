@@ -7,9 +7,17 @@
 # The container entrypoint runs as root (umbrelOS requirement); both services
 # run as the unprivileged "wisp" user via gosu. Config edits made through the
 # umbrelOS Files app persist and are never overwritten.
+#
+# The supervision section runs with `set +e`: NOTHING in the loop may kill the
+# supervisor. A failed pid-file write used to abort the whole entrypoint (set -e
+# treats a failed redirection as fatal), which crash-looped the container and
+# took the relay down with it. The pid file lives on the persisted /data volume
+# (wisp-writable) and failing to write it is logged and ignored — the GUI falls
+# back to finding the relay via /proc.
 set -e
 
 CONFIG="/data/wisp.toml"
+PID_FILE="${WISP_PID_FILE:-/data/wisp.pid}"
 
 if [ ! -f "${CONFIG}" ]; then
     cp /app/wisp.toml.default "${CONFIG}"
@@ -27,6 +35,12 @@ term() {
 trap term TERM INT
 
 rm -f "${SHUTDOWN_FLAG}"
+rm -f "${PID_FILE}" 2>/dev/null || true
+
+# Seeding is done; from here on the supervisor must survive any failure.
+set +e
+
+export WISP_PID_FILE="${PID_FILE}"
 
 gosu wisp python3 /app/gui/server.py &
 GUI_PID=$!
@@ -34,13 +48,16 @@ GUI_PID=$!
 while true; do
     gosu wisp wisp relay "${CONFIG}" &
     WISP_PID=$!
-    echo "${WISP_PID}" > /tmp/wisp.pid
-    chown wisp:wisp /tmp/wisp.pid
+    if ! echo "${WISP_PID}" > "${PID_FILE}" 2>/dev/null; then
+        echo "warn: could not write ${PID_FILE} (non-fatal; the GUI will find the relay via /proc)"
+    fi
+    chown wisp:wisp "${PID_FILE}" 2>/dev/null || true
 
     # Wait for the relay to exit; wait() also returns early if we get TERM'd.
     wait "${WISP_PID}" || true
 
     if [ -f "${SHUTDOWN_FLAG}" ]; then
+        rm -f "${PID_FILE}" 2>/dev/null || true
         exit 0
     fi
 

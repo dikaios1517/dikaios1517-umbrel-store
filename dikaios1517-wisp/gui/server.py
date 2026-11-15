@@ -30,7 +30,7 @@ RELAY_HOST = '127.0.0.1'
 RELAY_PORT = 7777
 GUI_PORT = int(os.environ.get('GUI_PORT', '3000'))
 CONFIG_PATH = os.environ.get('WISP_CONFIG', '/data/wisp.toml')
-WISP_PID_FILE = os.environ.get('WISP_PID_FILE', '/tmp/wisp.pid')
+WISP_PID_FILE = os.environ.get('WISP_PID_FILE', '/data/wisp.pid')
 HIDDEN_SERVICE = os.environ.get('APP_HIDDEN_SERVICE', '')
 HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'index.html')
 
@@ -44,11 +44,30 @@ def relay_alive():
 
 
 def wisp_pid():
+    # Fast path: the supervisor writes the relay pid to a file on the
+    # persisted volume. If the file is missing or stale (the write is
+    # non-fatal in entrypoint.sh), fall back to scanning /proc for the
+    # relay process — the GUI runs as the same unprivileged user, so any
+    # 'wisp' process it can see, it can signal.
     try:
         with open(WISP_PID_FILE) as f:
-            return int(f.read().strip())
+            pid = int(f.read().strip())
+        if pid > 1 and os.path.exists(f'/proc/{pid}'):
+            with open(f'/proc/{pid}/comm') as f:
+                if f.read().strip() == 'wisp':
+                    return pid
     except (OSError, ValueError):
-        return None
+        pass
+    for entry in os.listdir('/proc'):
+        if not entry.isdigit():
+            continue
+        try:
+            with open(f'/proc/{entry}/comm') as f:
+                if f.read().strip() == 'wisp':
+                    return int(entry)
+        except OSError:
+            continue
+    return None
 
 
 def restart_relay():

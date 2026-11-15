@@ -14,7 +14,7 @@ services:
   wisp:
     # Image is built and pushed by the build-apps workflow to
     # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
-    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.8
+    image: ghcr.io/dikaios1517/dikaios1517-wisp:0.9.10
     init: true
     restart: on-failure
     stop_grace_period: 1m
@@ -36,7 +36,8 @@ services:
       # remote Tor access is switched on); the GUI displays it.
       APP_HIDDEN_SERVICE: ${APP_HIDDEN_SERVICE:-not-enabled.onion}
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/3000"]
+      # /bin/sh is dash, which has no /dev/tcp — use the bundled python3.
+      test: ["CMD-SHELL", "python3 -c \"import socket; socket.create_connection(('127.0.0.1', 3000), 2)\""]
       interval: 30s
       timeout: 5s
       retries: 5
