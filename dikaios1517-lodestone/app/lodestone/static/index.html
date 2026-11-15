@@ -124,7 +124,7 @@
   </nav>
 </header>
 <main>
-  <div id="toast"></div>
+  <div id="toast" class="toast"></div>
 
   <!-- FEED -->
   <section id="feed">
@@ -149,7 +149,7 @@
         <option value="all" selected>All time</option>
       </select>
       <label class="toggle">
-        <span class="switch"><input type="checkbox" id="feed-owner" checked onchange="loadFeed()"></span>
+        <span class="switch"><input type="checkbox" id="feed-owner" checked onchange="loadFeed()"><span class="slider"></span></span>
         <span>Show my notes</span>
       </label>
       <button class="ghost" onclick="loadFeed()">Refresh</button>
@@ -201,7 +201,7 @@
       <div class="row">
         <div><label>Keep notes for (months)</label><input type="number" id="s-months" min="1"></div>
         <div style="flex:none; padding-top: 24px;">
-          <label class="toggle"><span class="switch"><input type="checkbox" id="s-ownerkeep"></span>
+          <label class="toggle"><span class="switch"><input type="checkbox" id="s-ownerkeep"><span class="slider"></span></span>
           <span>Keep my own notes indefinitely</span></label>
         </div>
       </div>
@@ -258,11 +258,20 @@
 
     <div class="panel">
       <h2>Security</h2>
-      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-public"></span>
+      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-public"><span class="slider"></span></span>
         <span>Allow public reads</span></label>
-      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-auth"></span>
+      <label class="toggle"><span class="switch"><input type="checkbox" id="sec-auth"><span class="slider"></span></span>
         <span>Require NIP-42 auth for writes</span></label>
       <button class="primary" onclick="saveSecurity()">Save security</button>
+    </div>
+
+    <div class="panel">
+      <h2>Restart</h2>
+      <p class="muted">Restarts the whole relay process so every saved setting
+      takes effect immediately. The relay is typically back within a few
+      seconds; this page reconnects on its own.</p>
+      <button class="danger" onclick="restartRelay()">Restart relay</button>
+      <span id="restart-status" class="muted"></span>
     </div>
   </section>
 
@@ -526,6 +535,22 @@ function addFilter(which) {
 function saveFilters() {
   post('/api/filters', { words: window._filters.words, hashtags: window._filters.hashtags })
     .then(ok => ok && toast('Word filters saved'));
+}
+function restartRelay() {
+  if (!confirm('Restart the relay now?')) return;
+  $('restart-status').textContent = 'restarting… this page reconnects automatically';
+  fetch('/api/restart', { method: 'POST' })
+    .then(() => pollRestart(45))
+    .catch(() => pollRestart(45));
+}
+function pollRestart(left) {
+  if (left <= 0) {
+    $('restart-status').textContent = 'still waiting… check that the app is running';
+    return;
+  }
+  setTimeout(() =>
+    fetch('/api/status').then(r => { if (r.ok) location.reload(); else pollRestart(left - 1); })
+      .catch(() => pollRestart(left - 1)), 2000);
 }
 function refreshLists() {
   fetch('/api/config').then(r => r.json()).then(c => {

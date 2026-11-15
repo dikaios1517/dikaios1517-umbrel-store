@@ -234,6 +234,7 @@ class Gui:
         app.router.add_post('/api/filters', self.api_set_filters)
         app.router.add_post('/api/purge', self.api_purge)
         app.router.add_post('/api/crawl', self.api_crawl)
+        app.router.add_post('/api/restart', self.api_restart)
         self.runner = web.AppRunner(app)
         await self.runner.setup()
         site = web.TCPSite(self.runner, host, port)
@@ -534,6 +535,22 @@ class Gui:
         stats = await asyncio.to_thread(self.retention.purge)
         self.last_purge = {**stats, 'at': int(time.time())}
         return web.json_response(self.last_purge)
+
+    async def api_restart(self, request):
+        """Exit the process so the container supervisor restarts it.
+
+        umbrelOS runs the app with docker `restart: on-failure`, so a
+        non-zero exit brings the whole relay (and every worker) back up
+        reading the saved config. The short delay lets the HTTP response
+        reach the browser first.
+        """
+        async def _exit():
+            await asyncio.sleep(0.8)
+            print('restart requested via GUI: exiting (supervisor will '
+                  'restart the container)', flush=True)
+            os._exit(1)
+        asyncio.get_event_loop().create_task(_exit())
+        return web.json_response({'restarting': True})
 
     async def api_crawl(self, request):
         if not self.crawler:
