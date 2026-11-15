@@ -271,6 +271,7 @@ class Gui:
             'relay_name': self.cfg['relay']['name'],
             'owner_set': bool(self.cfg['owner']['pubkey']),
             'last_poll': getattr(self.aggregator, 'last_poll', None),
+            'last_crawl_stats': getattr(self.crawler, 'last_stats', None),
         })
 
     # ---------------------------------------------------------------- config

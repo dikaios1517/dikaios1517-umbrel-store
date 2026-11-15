@@ -45,7 +45,7 @@
   }
   .panel h2 { margin: 0 0 14px; font-size: 16px; color: var(--accent); }
   label { display: block; color: var(--text-dim); font-size: 13px; margin: 12px 0 4px; }
-  input[type=text], input[type=number] {
+  input[type=text], input[type=number], textarea {
     width: 100%; background: var(--bg); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
     font-size: 14px;
@@ -185,6 +185,7 @@
       </div>
       <button class="ghost" onclick="crawlNow()">Crawl graph now</button>
       <span id="crawl-status" class="muted"></span>
+      <div id="st-crawl-detail" class="muted" style="margin-top:8px;"></div>
     </div>
 
     <div class="panel">
@@ -208,6 +209,12 @@
         <div><label>Aggregation interval (minutes)</label><input type="number" id="s-agint" min="1"></div>
         <div><label>PoW bits for strangers' replies/zaps</label><input type="number" id="s-pow" min="0" max="32"></div>
       </div>
+      <label>Graph indexer relays (one per line — the crawler reads your
+      relay list and follow list from these)</label>
+      <textarea id="s-indexers" rows="4" spellcheck="false"></textarea>
+      <label>Fallback relays (one per line — used for members with no relay
+      list event)</label>
+      <textarea id="s-fallbacks" rows="3" spellcheck="false"></textarea>
       <button class="primary" onclick="saveGraph()">Save graph settings</button>
     </div>
 
@@ -431,6 +438,24 @@ function loadStatus() {
         + 'aggregate from. Paste your npub below and click "Save identity".';
       warn.style.display = 'block';
     } else warn.style.display = 'none';
+    const cs = s.last_crawl_stats;
+    const det = $('st-crawl-detail');
+    if (cs && cs.ok) {
+      det.textContent = 'last crawl: owner relay list '
+        + (cs.owner_relay_list || 0) + ' relays, '
+        + (cs.owner_follows || 0) + ' follows found, graph '
+        + (cs.pubkeys || 0) + ' pubkeys';
+      if (!cs.owner_relay_list && !cs.owner_follows) {
+        det.textContent += ' — the indexer relays returned nothing for your '
+          + 'npub. Double-check the npub, and check that this container has '
+          + 'outbound internet access to wss:// relay hostnames.';
+      }
+    } else if (cs && !cs.ok) {
+      det.textContent = 'last crawl failed: ' + (cs.reason || 'unknown error');
+    } else det.textContent = '';
+    setTimeout(() => {
+      if (!$('#settings').classList.contains('hidden')) loadStatus();
+    }, 30000);
   });
 }
 function loadSettings() {
@@ -453,6 +478,8 @@ function loadSettings() {
     $('t-upstream_read_s').value = c.timeouts.upstream_read_s;
     $('sec-public').checked = c.security.allow_public_reads;
     $('sec-auth').checked = c.security.require_auth_writes;
+    $('s-indexers').value = (c.graph.indexer_relays || []).join('\n');
+    $('s-fallbacks').value = (c.aggregation.fallback_relays || []).join('\n');
     window._kinds = c.kinds;
     renderChips('kinds-list', c.kinds, 'kinds');
   });
@@ -464,10 +491,15 @@ function saveIdentity() {
   }).then(ok => { if (ok) toast('Identity saved — graph re-crawls on schedule'); });
 }
 function saveGraph() {
+  const lines = id => $(id).value.split('\n').map(s => s.trim())
+    .filter(s => s.startsWith('ws://') || s.startsWith('wss://'));
   post('/api/config', {
-    graph: { depth: +$('s-depth').value, refresh_hours: +$('s-refresh').value },
-    aggregation: { interval_minutes: +$('s-agint').value, pow_threshold: +$('s-pow').value },
-  }).then(ok => ok && toast('Graph settings saved'));
+    graph: { depth: +$('s-depth').value, refresh_hours: +$('s-refresh').value,
+             indexer_relays: lines('s-indexers') },
+    aggregation: { interval_minutes: +$('s-agint').value,
+                   pow_threshold: +$('s-pow').value,
+                   fallback_relays: lines('s-fallbacks') },
+  }).then(ok => ok && toast('Graph settings saved — applies at the next crawl/sweep'));
 }
 function saveRetention() {
   post('/api/config', {

@@ -20,6 +20,7 @@ class GraphCrawler:
         self.store = store
         self.cfg = config
         self.log = log or (lambda *a: None)
+        self.last_stats = None   # diagnostic summary of the last crawl()
 
     def _owner(self) -> bytes | None:
         hex_pk = self.cfg['owner']['pubkey']
@@ -113,9 +114,13 @@ class GraphCrawler:
     async def crawl(self) -> dict:
         owner = self._owner()
         if not owner:
+            self.last_stats = {'at': int(time.time()), 'ok': False,
+                               'reason': 'no owner pubkey set'}
             self.log('no owner pubkey configured; skipping graph crawl')
             return {'ok': False, 'reason': 'no owner pubkey'}
 
+        stats = {'at': int(time.time()), 'ok': False, 'pubkeys': 0,
+                 'owner_relay_list': 0, 'owner_follows': 0}
         max_depth = int(self.cfg['graph']['depth'])
         max_pubkeys = int(self.cfg['aggregation'].get('max_graph_pubkeys', 5000))
         sem = asyncio.Semaphore(CONCURRENT_FETCHES)
@@ -139,6 +144,9 @@ class GraphCrawler:
                 if isinstance(res, Exception):
                     continue
                 pk, follows = res
+                if pk == owner:
+                    stats['owner_follows'] = len(follows)
+                    stats['owner_relay_list'] = len(self.store.relay_list(owner))
                 for f in follows:
                     if f not in graph and len(graph) < max_pubkeys:
                         graph[f] = depth
@@ -163,6 +171,9 @@ class GraphCrawler:
 
         self.store.set_graph([(pk, d) for pk, d in graph.items()])
         self.store.set_relay_sync('__graph__', int(time.time()))
+        stats['ok'] = True
+        stats['pubkeys'] = len(graph)
+        self.last_stats = stats
         return {'ok': True, 'pubkeys': len(graph)}
 
     def graph_age(self) -> float | None:
@@ -183,7 +194,16 @@ class GraphCrawler:
                 continue
             started = time.time()
             try:
-                await self.crawl()
+                result = await self.crawl()
             except Exception as e:
+                result = {'ok': False}
+                self.last_stats = {'at': int(time.time()), 'ok': False,
+                                   'reason': repr(e)}
                 self.log(f'graph crawl error: {e!r}')
+            if not result.get('ok', False):
+                # typically 'no owner pubkey': the user may paste the npub
+                # any minute, so re-check soon instead of sleeping a full
+                # refresh interval
+                await asyncio.sleep(60)
+                continue
             await asyncio.sleep(max(60, interval - (time.time() - started)))
