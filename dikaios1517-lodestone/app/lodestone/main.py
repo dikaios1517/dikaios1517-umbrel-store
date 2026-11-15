@@ -7,6 +7,7 @@ Relay websocket on cfg.relay.port (default 7070), GUI on cfg.relay.gui_port
 """
 import asyncio
 import os
+import socket
 import sys
 
 from . import config as lconfig
@@ -16,6 +17,27 @@ from .gui_server import Gui
 from .relay import Relay
 from .retention import Retention
 from .store import EventStore
+
+
+def _prefer_ipv4(loop) -> None:
+    """Order DNS results IPv4-first for all connects on this loop.
+
+    asyncio tries addresses in getaddrinfo order and Python does not do
+    happy-eyeballs: on a host with a black-holed IPv6 route (common with
+    VPNs/Tailscale), every outbound websocket connect would hang on the
+    AAAA attempt while DNS itself works. Wisp (Zig) handles dual-stack
+    gracefully, so this keeps the two relays on equal footing.
+    """
+    orig = loop.getaddrinfo
+
+    async def getaddrinfo(host, port, *args, **kwargs):
+        res = await orig(host, port, *args, **kwargs)
+        v4 = [r for r in res if r[0] == socket.AF_INET]
+        rest = [r for r in res if r[0] != socket.AF_INET]
+        return v4 + rest
+
+    loop.getaddrinfo = getaddrinfo
+
 
 DATA_DIR = os.environ.get('LODESTONE_DATA', '/data')
 
@@ -43,6 +65,7 @@ def main() -> int:
     gui = Gui(store, cfg, retention, crawler, aggregator, log=log)
 
     async def run():
+        _prefer_ipv4(asyncio.get_event_loop())
         await relay.start(cfg['relay']['bind'], cfg['relay']['port'])
         await gui.start(cfg['relay']['bind'], cfg['relay']['gui_port'])
         await asyncio.gather(

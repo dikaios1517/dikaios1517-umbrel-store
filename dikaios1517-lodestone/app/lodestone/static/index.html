@@ -186,6 +186,7 @@
       <button class="ghost" onclick="crawlNow()">Crawl graph now</button>
       <span id="crawl-status" class="muted"></span>
       <div id="st-crawl-detail" class="muted" style="margin-top:8px;"></div>
+      <div id="st-probe" class="muted" style="display:none;margin-top:6px;font-size:12px;"></div>
     </div>
 
     <div class="panel">
@@ -453,6 +454,15 @@ function loadStatus() {
     } else if (cs && !cs.ok) {
       det.textContent = 'last crawl failed: ' + (cs.reason || 'unknown error');
     } else det.textContent = '';
+    if (cs && cs.indexers) {
+      const box = $('st-probe');
+      box.textContent = Object.entries(cs.indexers)
+        .map(([u, r]) => u.replace(/^wss?:\/\//, '') + ': ' + r)
+        .join('  ·  ');
+      box.style.display = 'block';
+      box.style.color = Object.values(cs.indexers).every(r => r === 'ok')
+        ? 'var(--text-dim)' : 'var(--accent)';
+    }
     setTimeout(() => {
       if (!$('#settings').classList.contains('hidden')) loadStatus();
     }, 30000);

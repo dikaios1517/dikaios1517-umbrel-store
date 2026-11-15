@@ -5,10 +5,21 @@ never stalls the workers.
 """
 import asyncio
 import json
+import os
 import ssl as _ssl
 import time
 
 import websockets
+
+# Never route upstream connections through HTTPS_PROXY-style env vars:
+# umbrelOS containers connect directly, and a stale/broken proxy var would
+# black-hole every outbound websocket while wisp-style clients that ignore
+# the env keep working. websockets 15 reads these implicitly and has no
+# `proxy=False` sentinel, so we clear them at import.
+for _var in ('WSS_PROXY', 'wss_proxy', 'WS_PROXY', 'ws_proxy',
+             'HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy',
+             'ALL_PROXY', 'all_proxy'):
+    os.environ.pop(_var, None)
 
 _ctx = None
 
@@ -65,3 +76,33 @@ async def fetch_latest(relay_url: str, filters: list[dict],
     async for ev in fetch_events(relay_url, filters, timeout_s, max_events=1):
         return ev
     return None
+
+
+async def probe_relay(relay_url: str, timeout_s: float = 8.0) -> str:
+    """Reachability check: 'ok' or a short classified failure reason.
+
+    Distinguishes dns / refused / timeout / tls / http-status / network so
+    the GUI can show WHY a relay is unreachable (e.g. everything timing out
+    after DNS succeeds suggests an MTU/handshake blackhole).
+    """
+    import socket as _socket
+    kwargs = {'open_timeout': timeout_s, 'close_timeout': 2}
+    if relay_url.startswith('wss://'):
+        kwargs['ssl'] = _ssl_ctx()
+    try:
+        async with websockets.connect(relay_url, **kwargs):
+            return 'ok'
+    except _socket.gaierror:
+        return 'dns lookup failed'
+    except (ConnectionRefusedError, ConnectionResetError):
+        return 'connection refused'
+    except asyncio.TimeoutError:
+        return 'connect timed out'
+    except websockets.exceptions.InvalidURI:
+        return 'not a ws:// or wss:// URL'
+    except websockets.exceptions.InvalidStatus as e:
+        return f'http {e.response.status_code}'
+    except websockets.exceptions.InvalidHandshake as e:
+        return f'handshake failed: {e!r}'[:80]
+    except OSError as e:
+        return f'network error: {e}'[:80]

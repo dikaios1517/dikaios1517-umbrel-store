@@ -8,7 +8,7 @@ so the aggregator knows where each user writes/reads.
 import asyncio
 import time
 
-from .upstream import fetch_events, fetch_latest
+from .upstream import fetch_events, fetch_latest, probe_relay
 from .schnorr import verify
 
 MAX_RELAYS_PER_KEY = 16      # cap fan-out per pubkey
@@ -121,6 +121,12 @@ class GraphCrawler:
 
         stats = {'at': int(time.time()), 'ok': False, 'pubkeys': 0,
                  'owner_relay_list': 0, 'owner_follows': 0}
+        # reachability check on every configured upstream relay, so the GUI
+        # can show exactly which relays answer and why the others fail
+        urls = list(self.cfg['graph']['indexer_relays']) \
+            + list(self.cfg['aggregation'].get('fallback_relays', []))
+        results = await asyncio.gather(*[probe_relay(u, 8) for u in urls])
+        stats['indexers'] = dict(zip(urls, results))
         max_depth = int(self.cfg['graph']['depth'])
         max_pubkeys = int(self.cfg['aggregation'].get('max_graph_pubkeys', 5000))
         sem = asyncio.Semaphore(CONCURRENT_FETCHES)
