@@ -46,7 +46,10 @@ major Wisp upgrade.
 
 **Feed** (`[feed]`; as of 0.9.7): a tab in the GUI listing the notes on
 *this* relay, sortable by newest, oldest, or most zapped within a chosen
-time window (1/7/30/90 days or all time). Clicking a note opens a detail
+time window (24 hours, 7/30/90 days, 1 or 2 years, or all time). Image
+URLs in note text render as images and other URLs become links. A toggle
+hides the admin's own notes (useful since those may be retained far longer
+than everything else). Clicking a note opens a detail
 view with zap totals (from local receipts plus the author's relays) and
 replies. Interaction data is crawled from each original poster's kind 10002
 read relays (falling back to the configured `bootstrap_relays`), cached in

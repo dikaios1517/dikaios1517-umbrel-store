@@ -727,7 +727,26 @@ class FeedEngine:
                 totals[nid] += zap_amount_msat(json.loads(row[0]))
         return totals
 
-    def feed(self, sort='newest', days=None, until=None, limit=50, offset=0):
+    # ---- admin pubkeys ----
+    def _admins(self):
+        """Admin pubkeys ([spider] admin + [management] admin_pubkeys)."""
+        cfg = self.read_config()
+        admins = set()
+        for section, key in (('spider', 'admin'),
+                             ('management', 'admin_pubkeys')):
+            v = cfg.get(section, {}).get(key)
+            if not v:
+                continue
+            if isinstance(v, str):
+                v = [v]
+            for a in v:
+                a = str(a).strip().lower()
+                if len(a) == 64 and all(c in '0123456789abcdef' for c in a):
+                    admins.add(a)
+        return admins
+
+    def feed(self, sort='newest', days=None, until=None, limit=50,
+             offset=0, hide_admin=False):
         """kind-1 notes on this relay, sorted. Zapped sort ranks by zap
         msat total within the window (local store + crawl cache)."""
         env = self._env()
@@ -736,17 +755,30 @@ class FeedEngine:
             since = int(time.time()) - int(days) * 86400 if days else None
             if until is not None:
                 until = int(until)
+            admins = self._admins() if hide_admin else set()
             if sort == 'zapped':
                 window_since = since if since is not None else \
                     int(time.time()) - 7 * 86400
                 cands = self._local_events_by_kind(
                     env, [KIND_NOTE], since=window_since, until=until,
                     limit=MAX_CANDIDATES, order='desc')
+                if admins:
+                    cands = [c for c in cands if c['pubkey'] not in admins]
                 totals = self._local_zap_totals(env, db,
                                                 [c['id'] for c in cands],
                                                 window_since)
                 cands.sort(key=lambda e: totals.get(e['id'], 0), reverse=True)
                 page = cands[offset:offset + limit]
+            elif admins:
+                # filter admin posts before paging so offsets stay consistent
+                page = self._local_events_by_kind(
+                    env, [KIND_NOTE], since=since, until=until,
+                    limit=MAX_CANDIDATES,
+                    order='desc' if sort == 'newest' else 'asc')
+                page = [c for c in page if c['pubkey'] not in admins]
+                page = page[offset:offset + limit]
+                totals = self._local_zap_totals(env, db, [c['id'] for c in page],
+                                                since or 0)
             else:
                 page = self._local_events_by_kind(
                     env, [KIND_NOTE], since=since, until=until, limit=limit,

@@ -76,6 +76,34 @@ def read_config():
         return tomllib.load(f)
 
 
+DEFAULTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             os.pardir, 'wisp.toml.default')
+
+
+def read_defaults():
+    try:
+        with open(DEFAULTS_PATH, 'rb') as f:
+            return tomllib.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def merged_config():
+    """User config with defaults filled in for keys it does not set yet
+    (e.g. a wisp.toml from before [retention]/[feed] existed), so the
+    settings form shows every section. Saving writes the merged set."""
+    cfg = read_config()
+    for section, values in read_defaults().items():
+        if not isinstance(values, dict):
+            continue
+        tgt = cfg.setdefault(section, {})
+        if isinstance(tgt, dict):
+            for k, v in values.items():
+                if k not in tgt:
+                    tgt[k] = v
+    return cfg
+
+
 def render_toml(data):
     """wisp's TOML parser only understands flat scalar values under [section]
     headers (everything else it knows is a scalar; csv lists are plain quoted
@@ -227,7 +255,7 @@ class Handler:
                     'lan': 'ws://umbrel:7777',
                 })
             elif path == '/api/config' and method == 'GET':
-                self.respond(200, read_config())
+                self.respond(200, merged_config())
             elif path == '/api/config' and method == 'POST':
                 data = json.loads(rest.decode('utf-8') or '{}')
                 if not isinstance(data, dict):
@@ -249,7 +277,8 @@ class Handler:
                     days=(query.get('days') or [None])[0],
                     until=(query.get('until') or [None])[0],
                     limit=min(int((query.get('limit') or ['50'])[0]), 200),
-                    offset=int((query.get('offset') or ['0'])[0])))
+                    offset=int((query.get('offset') or ['0'])[0]),
+                    hide_admin=(query.get('hide_admin') or ['0'])[0] == '1'))
             elif path == '/api/feed/note' and method == 'GET':
                 eid = (query.get('id') or [''])[0].lower()
                 if len(eid) != 64 or not all(

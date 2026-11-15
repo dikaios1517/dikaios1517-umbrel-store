@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-wisp
 category: social
 name: Wisp
-version: "0.9.7"
+version: "0.9.8"
 tagline: A fast, lightweight private Nostr relay
 icon: https://raw.githubusercontent.com/privkeyio/wisp/main/assets/wisp-logo.jpeg
 description: >-
@@ -52,14 +52,12 @@ submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 3000
 gallery: []
 releaseNotes: >-
-  New Feed tab in the management GUI: browse this relay's notes sorted by
-  newest, oldest, or most zapped within a time window, with a per-note view
-  showing zap totals and replies. Replies and zaps are pulled from each
-  author's kind 10002 read relays; replies from outside the original
-  poster's web of trust (their follows and their follows' follows) are
-  hidden unless they carry NIP-13 proof of work of 16 or higher; all zaps
-  are shown regardless of web of trust. Relay core remains upstream
-  v0.9.3.
+  Feed tab improvements: image URLs in notes now render as images and other
+  URLs become clickable links; new toggle to hide the admin's own notes;
+  time windows extended to 1 year, 2 years, and all time. Fixed: the
+  settings tab now always shows the [retention] and [feed] sections even
+  for configs created before those sections existed (defaults are filled
+  in on save). Relay core remains upstream v0.9.3.
 dependencies: []
 path: ""
 defaultUsername: ""

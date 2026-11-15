@@ -100,6 +100,16 @@
   .zapline { color: var(--muted); font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
   .zapline b { color: var(--teal-bright); }
   .spinner { color: var(--teal-bright); font-size: 12px; display: none; }
+  .feed-img {
+    max-width: 100%; max-height: 420px; display: block;
+    border-radius: 8px; margin-top: 8px; border: 1px solid var(--border);
+  }
+  .note .body a { color: var(--teal-bright); word-break: break-all; }
+  .feed-ctl label.ctl {
+    display: flex; gap: 6px; align-items: center; color: var(--muted);
+    font-size: 13px; cursor: pointer;
+  }
+  .feed-ctl label.ctl input { width: auto; margin: 0; }
 </style>
 </head>
 <body>
@@ -137,7 +147,10 @@
         <option value="7">Last 7 days</option>
         <option value="30">Last 30 days</option>
         <option value="90">Last 90 days</option>
+        <option value="365">Last year</option>
+        <option value="730">Last 2 years</option>
       </select>
+      <label class="ctl"><input type="checkbox" id="feed-hide-admin"> Hide admin's notes</label>
       <span class="spinner" id="feed-crawl">fetching replies &amp; zaps from authors' relays…</span>
     </div>
     <div id="feed-list"><p class="muted">Loading…</p></div>
@@ -385,12 +398,29 @@ function who(n) {
     esc(n.profile.name || 'anon') : esc(n.pubkey ? n.pubkey.slice(0, 12) + '…' : 'anon');
 }
 
+const IMG_RE = /\.(?:png|jpe?g|gif|webp|avif|bmp|svg)(?:\?\S*)?$/i;
+function rich(text) {
+  // escape first (quotes become entities so attribute injection is impossible),
+  // then turn URLs into links, and image URLs into <img> elements.
+  return esc(text).replace(/https?:\/\/[^\s<]+/g, m => {
+    const url = m.replace(/&amp;/g, '&');
+    if (IMG_RE.test(url)) {
+      return '<img class="feed-img" loading="lazy" alt="" src="' +
+        url.replace(/"/g, '%22') + '">';
+    }
+    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+      m + '</a>';
+  });
+}
+
 async function loadFeed(reset) {
   if (reset) { feedOffset = 0; document.getElementById('feed-list').innerHTML = '<p class="muted">Loading…</p>'; }
   const sort = document.getElementById('feed-sort').value;
   const days = document.getElementById('feed-days').value;
+  const hideAdmin = document.getElementById('feed-hide-admin').checked;
   try {
-    const notes = await api(`/api/feed?sort=${sort}${days ? '&days=' + days : ''}&offset=${feedOffset}&limit=50`);
+    const notes = await api(`/api/feed?sort=${sort}${days ? '&days=' + days : ''}` +
+      `${hideAdmin ? '&hide_admin=1' : ''}&offset=${feedOffset}&limit=50`);
     const list = document.getElementById('feed-list');
     if (reset) list.innerHTML = '';
     if (!notes.length && reset) {
@@ -399,10 +429,18 @@ async function loadFeed(reset) {
     for (const n of notes) {
       const div = document.createElement('div');
       div.className = 'note';
-      div.innerHTML = `<div class="who"><b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span></div>` +
-        `<div class="body">${esc(n.content.slice(0, 400))}${n.content.length > 400 ? '…' : ''}</div>` +
-        `<div class="stats"><span>⚡ <b>${sats(n.zapMsat)}</b> sats</span><span>💬 <b>${n.replies}</b></span></div>`;
-      div.addEventListener('click', () => openNote(n.id));
+      const body = document.createElement('div');
+      body.className = 'body';
+      body.innerHTML = rich(n.content.length > 400 ?
+        n.content.slice(0, 400) + '…' : n.content);
+      div.innerHTML = `<div class="who"><b>${who(n)}</b><span class="muted">${ago(n.createdAt)}</span></div>`;
+      div.appendChild(body);
+      div.insertAdjacentHTML('beforeend',
+        `<div class="stats"><span>⚡ <b>${sats(n.zapMsat)}</b> sats</span><span>💬 <b>${n.replies}</b></span></div>`);
+      div.addEventListener('click', (ev) => {
+        if (ev.target.closest('a')) return;  // don't open the note when a link is clicked
+        openNote(n.id);
+      });
       list.appendChild(div);
     }
     feedOffset += notes.length;
@@ -424,7 +462,7 @@ async function openNote(id) {
     currentNote = id;
     let html = `<div class="who"><b>${esc(d.opName || d.pubkey.slice(0, 12) + '…')}</b>` +
       `<span class="muted">${ago(d.createdAt)}</span></div>` +
-      `<div class="body">${esc(d.content)}</div>` +
+      `<div class="body">${rich(d.content)}</div>` +
       `<div class="stats"><span>⚡ <b>${sats(d.zapMsat)}</b> sats from ${d.zaps.length} zap${d.zaps.length === 1 ? '' : 's'}</span>` +
       `<span>💬 <b>${d.replies.length}</b> replies</span>` +
       (d.filteredReplies ? `<span class="muted">${d.filteredReplies} out-of-trust replies hidden</span>` : '') +
@@ -436,7 +474,7 @@ async function openNote(id) {
     html += '<h2 style="margin-top:16px">Replies</h2>';
     html += d.replies.length ? d.replies.slice(0, 100).map(r =>
       `<div class="note"><div class="who"><b>${esc((r.profile && r.profile.name) || r.pubkey.slice(0, 12) + '…')}</b>` +
-      `<span class="muted">${ago(r.createdAt)}</span></div><div class="body">${esc(r.content)}</div></div>`
+      `<span class="muted">${ago(r.createdAt)}</span></div><div class="body">${rich(r.content)}</div></div>`
     ).join('') : '<p class="muted">No replies within the web of trust yet.</p>';
     html += '<p class="muted">Replies are fetched from the author\'s read relays (their kind 10002 list). Replies from outside the author\'s web of trust are hidden unless they carry NIP-13 proof of work; zaps are always shown.</p>';
     body.innerHTML = html;
@@ -454,6 +492,7 @@ document.getElementById('feed-more').addEventListener('click', () => loadFeed(fa
 document.getElementById('feed-reload').addEventListener('click', () => loadFeed(true));
 document.getElementById('feed-sort').addEventListener('change', () => loadFeed(true));
 document.getElementById('feed-days').addEventListener('change', () => loadFeed(true));
+document.getElementById('feed-hide-admin').addEventListener('change', () => loadFeed(true));
 
 loadFeed(true);
 setInterval(() => {
