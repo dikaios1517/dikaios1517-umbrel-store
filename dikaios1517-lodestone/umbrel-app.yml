@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-lodestone
 category: social
 name: Lodestone
-version: "0.1.8"
+version: "0.1.10"
 tagline: A personal Nostr relay that follows your social graph
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-lodestone/icon.png
 description: >-
@@ -65,7 +65,7 @@ description: >-
   software — no code from any other relay.
 
 
-  This package runs Lodestone v0.1.8.
+  This package runs Lodestone v0.1.10.
 developer: Dikaios1517
 website: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 repo: https://github.com/Dikaios1517/dikaios1517-umbrel-store
@@ -75,11 +75,12 @@ submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 3001
 gallery: []
 releaseNotes: >-
-  0.1.8: outbound connection fixes for containers where relays were
-  unreachable — proxy environment variables are now ignored (websockets
-  routed through them implicitly) and DNS results are ordered IPv4-first,
-  matching wisp's dual-stack behavior on hosts with VPNs. 0.1.7 added
-  per-relay reachability probes shown in the Aggregation status panel. 0.1.6 made the indexer and fallback relay lists editable in
+  0.1.10: follow lists (kind 3) are now fetched from each user's WRITE
+  relays per their kind 10002, not their read relays — matching how the
+  social graph should be walked. Includes 0.1.9's signature self-test
+  (broken coincurve wheels silently rejected every event), relay
+  rejection/closure diagnostics, and full-retention backfill on the
+  first sweep. 0.1.6 made the indexer and fallback relay lists editable in
   Settings.
   0.1.5 added crawl diagnostics — the Aggregation status panel shows what the
   last crawl found and flags when the indexer relays returned nothing. Setting the owner npub now

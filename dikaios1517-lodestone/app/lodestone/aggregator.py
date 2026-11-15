@@ -123,8 +123,11 @@ class Aggregator:
     async def poll(self) -> dict:
         members = self._members()
         graph_pks = set(members)
-        since_default = int(time.time()) - SYNC_OVERLAP_S \
-            - int(self.cfg['aggregation']['interval_minutes']) * 60
+        # First-ever sync of a relay gets the retention window, not the
+        # regular overlap window — otherwise a fresh install would only
+        # pull the last few minutes and the feed would stay empty until
+        # graph members posted something new.
+        backfill_s = min(int(self.cfg['retention']['months']), 24) * 30 * 86400
         stats = {'stored': 0, 'relays': 0}
 
         # relay -> set of members that use it
@@ -135,7 +138,8 @@ class Aggregator:
 
         for url, pks in by_relay.items():
             last = self.store.relay_sync(url)
-            since = (last - SYNC_OVERLAP_S) if last else since_default
+            since = (last - SYNC_OVERLAP_S) if last \
+                else int(time.time()) - backfill_s
             stats['relays'] += 1
 
             async def pull(filters, tagged=False):

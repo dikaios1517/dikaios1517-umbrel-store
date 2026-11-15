@@ -37,12 +37,16 @@ class GraphCrawler:
         cached = self.store.relay_list(pubkey)
         filters = [{'kinds': [10002], 'authors': [pubkey.hex()], 'limit': 1}]
         indexers = self.cfg['graph']['indexer_relays']
+        self._rl_diag: list[str] = []
         for relay_url in indexers:
             ev = await fetch_latest(relay_url, filters,
-                                    self.cfg['aggregation']['upstream_timeout_s'])
+                                    self.cfg['aggregation']['upstream_timeout_s'],
+                                    diag=self._rl_diag)
             if not ev:
                 continue
             if not self._valid(ev, pubkey):
+                self._rl_diag.append(
+                    f'{relay_url}: event failed id/signature validation')
                 continue
             entries = self._parse_10002(ev)
             self.store.set_relay_list(pubkey, entries)
@@ -89,13 +93,19 @@ class GraphCrawler:
         """Kind 3 p-tags from the pubkey's own relays (indexer fallback)."""
         filters = [{'kinds': [3], 'authors': [pubkey.hex()], 'limit': 1}]
         seen = set()
+        self._fw_diag: list[str] = []
         for relay_url in relays + self.cfg['graph']['indexer_relays']:
             if relay_url in seen:
                 continue
             seen.add(relay_url)
             ev = await fetch_latest(relay_url, filters,
-                                    self.cfg['aggregation']['upstream_timeout_s'])
-            if not ev or not self._valid(ev, pubkey):
+                                    self.cfg['aggregation']['upstream_timeout_s'],
+                                    diag=self._fw_diag)
+            if not ev:
+                continue
+            if not self._valid(ev, pubkey):
+                self._fw_diag.append(
+                    f'{relay_url}: event failed id/signature validation')
                 continue
             self.store.store_event(ev)  # keep the follow list locally
             follows = set()
@@ -140,8 +150,10 @@ class GraphCrawler:
             async def expand(pk):
                 async with sem:
                     entries = await self.fetch_relay_list(pk)
-                    read_relays = [u for u, rd, wr in entries if rd]
-                    return pk, await self.fetch_follows(pk, read_relays)
+                    # a kind 3 follow list is something the user WRITES —
+                    # ask their write relays (indexers remain the fallback)
+                    write_relays = [u for u, rd, wr in entries if wr]
+                    return pk, await self.fetch_follows(pk, write_relays)
 
             results = await asyncio.gather(
                 *[expand(pk) for pk in frontier], return_exceptions=True)
@@ -153,6 +165,14 @@ class GraphCrawler:
                 if pk == owner:
                     stats['owner_follows'] = len(follows)
                     stats['owner_relay_list'] = len(self.store.relay_list(owner))
+                    # owner produced no data: surface WHY from the diag lists
+                    if not stats['owner_follows'] \
+                            and not stats['owner_relay_list']:
+                        diag = list(dict.fromkeys(
+                            getattr(self, '_rl_diag', [])
+                            + getattr(self, '_fw_diag', [])))[:6]
+                        if diag:
+                            stats['owner_diag'] = diag
                 for f in follows:
                     if f not in graph and len(graph) < max_pubkeys:
                         graph[f] = depth

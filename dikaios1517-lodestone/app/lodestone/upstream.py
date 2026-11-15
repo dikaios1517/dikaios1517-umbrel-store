@@ -32,8 +32,13 @@ def _ssl_ctx():
 
 
 async def fetch_events(relay_url: str, filters: list[dict],
-                       timeout_s: float = 8.0, max_events: int = 5000):
-    """Yield event dicts matching filters from one relay until EOSE/timeout."""
+                       timeout_s: float = 8.0, max_events: int = 5000,
+                       diag: list | None = None):
+    """Yield event dicts matching filters from one relay until EOSE/timeout.
+
+    Non-EVENT relay frames (CLOSED/NOTICE/AUTH) are normally swallowed; pass
+    a `diag` list to capture them as short strings for diagnostics.
+    """
     sub = f'ls{int(time.time() * 1000)}'
     kwargs = {'open_timeout': timeout_s, 'close_timeout': 2,
               'max_size': 4 * 1024 * 1024}
@@ -64,16 +69,25 @@ async def fetch_events(relay_url: str, filters: list[dict],
                 elif arr[0] == 'EOSE':
                     return
                 elif arr[0] == 'CLOSED':
+                    if diag is not None and len(arr) > 2:
+                        diag.append('closed: ' + str(arr[2])[:100])
                     return
+                elif arr[0] == 'NOTICE' and diag is not None:
+                    diag.append('notice: ' + str(arr[1])[:100]
+                                if len(arr) > 1 else 'notice')
+                elif arr[0] == 'AUTH' and diag is not None:
+                    diag.append('relay requires NIP-42 auth for this query')
     except (OSError, websockets.InvalidURI, websockets.InvalidHandshake,
             websockets.ConnectionClosed, asyncio.TimeoutError):
         return
 
 
 async def fetch_latest(relay_url: str, filters: list[dict],
-                       timeout_s: float = 8.0) -> dict | None:
+                       timeout_s: float = 8.0, diag: list | None = None) \
+        -> dict | None:
     """First (latest, by limit-1 ordering) event matching the filters."""
-    async for ev in fetch_events(relay_url, filters, timeout_s, max_events=1):
+    async for ev in fetch_events(relay_url, filters, timeout_s,
+                                 max_events=1, diag=diag):
         return ev
     return None
 

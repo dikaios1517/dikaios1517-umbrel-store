@@ -186,6 +186,7 @@
       <button class="ghost" onclick="crawlNow()">Crawl graph now</button>
       <span id="crawl-status" class="muted"></span>
       <div id="st-crawl-detail" class="muted" style="margin-top:8px;"></div>
+      <div id="st-sig" class="muted" style="display:none;margin-top:4px;font-size:12px;"></div>
       <div id="st-probe" class="muted" style="display:none;margin-top:6px;font-size:12px;"></div>
     </div>
 
@@ -447,13 +448,24 @@ function loadStatus() {
         + (cs.owner_follows || 0) + ' follows found, graph '
         + (cs.pubkeys || 0) + ' pubkeys';
       if (!cs.owner_relay_list && !cs.owner_follows) {
-        det.textContent += ' — the indexer relays returned nothing for your '
-          + 'npub. Double-check the npub, and check that this container has '
-          + 'outbound internet access to wss:// relay hostnames.';
+        if (cs.owner_diag && cs.owner_diag.length) {
+          det.textContent += ' — relays answered but returned no data for '
+            + 'your npub: ' + cs.owner_diag.join(' | ');
+        } else {
+          det.textContent += ' — the indexer relays returned nothing for your '
+            + 'npub. Double-check the npub, and check that this container has '
+            + 'outbound internet access to wss:// relay hostnames.';
+        }
       }
     } else if (cs && !cs.ok) {
       det.textContent = 'last crawl failed: ' + (cs.reason || 'unknown error');
     } else det.textContent = '';
+    if (s.sig_backend) {
+      const sb = $('st-sig');
+      sb.textContent = 'signature backend: ' + s.sig_backend;
+      sb.style.color = s.sig_backend.startsWith('coincurve')
+        ? 'var(--text-dim)' : 'var(--accent)';
+    }
     if (cs && cs.indexers) {
       const box = $('st-probe');
       box.textContent = Object.entries(cs.indexers)

@@ -272,6 +272,7 @@ class Gui:
             'owner_set': bool(self.cfg['owner']['pubkey']),
             'last_poll': getattr(self.aggregator, 'last_poll', None),
             'last_crawl_stats': getattr(self.crawler, 'last_stats', None),
+            'sig_backend': schnorr.backend(),
         })
 
     # ---------------------------------------------------------------- config

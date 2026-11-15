@@ -13,39 +13,46 @@ n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 G = (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
      0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
 
-try:
-    from coincurve import PublicKey as _CCPublicKey  # noqa
+_SELFTEST_SK = bytes((b & 0x7F) | 0x01 for b in
+                      hashlib.sha256(b'lodestone-selftest-key').digest())
 
-    def verify(pubkey: bytes, msg: bytes, sig: bytes) -> bool:
-        if len(pubkey) != 32 or len(msg) != 32 or len(sig) != 64:
-            return False
-        try:
-            pk = _CCPublicKey(pubkey)
-        except Exception:
-            return False
-        # coincurve exposes BIP-340 schnorr verify via verify_schnorr
-        try:
-            return bool(pk.verify_schnorr(sig, msg))
-        except Exception:
-            return False
-except ImportError:
-    def verify(pubkey: bytes, msg: bytes, sig: bytes) -> bool:
-        if len(pubkey) != 32 or len(sig) != 64:
-            return False
-        r = int.from_bytes(sig[:32], 'big')
-        s = int.from_bytes(sig[32:], 'big')
-        if r >= p or s >= n:
-            return False
-        P = lift_x(int.from_bytes(pubkey, 'big'))
-        if P is None:
-            return False
-        rx_bytes = sig[:32]
-        e = int.from_bytes(
-            tagged_hash('BIP0340/challenge', rx_bytes + pubkey + msg), 'big') % n
-        R = point_add(point_mul(G, s), point_neg(point_mul(P, e)))
-        if R is None or not is_y_even(R) or R[0] != r:
-            return False
-        return True
+
+def _self_test(fn) -> bool:
+    """True when fn verifies a signature produced by the reference signer."""
+    try:
+        pub = point_mul(G, int.from_bytes(_SELFTEST_SK, 'big'))[0] \
+            .to_bytes(32, 'big')
+        msg = hashlib.sha256(b'lodestone-selftest-msg').digest()
+        return fn(pub, msg, sign(_SELFTEST_SK, msg))
+    except Exception:
+        return False
+
+
+def _pure_verify(pubkey: bytes, msg: bytes, sig: bytes) -> bool:
+    if len(pubkey) != 32 or len(sig) != 64:
+        return False
+    r = int.from_bytes(sig[:32], 'big')
+    s = int.from_bytes(sig[32:], 'big')
+    if r >= p or s >= n:
+        return False
+    P = lift_x(int.from_bytes(pubkey, 'big'))
+    if P is None:
+        return False
+    rx_bytes = sig[:32]
+    e = int.from_bytes(
+        tagged_hash('BIP0340/challenge', rx_bytes + pubkey + msg), 'big') % n
+    R = point_add(point_mul(G, s), point_neg(point_mul(P, e)))
+    if R is None or not is_y_even(R) or R[0] != r:
+        return False
+    return True
+
+
+_backend = None
+
+
+def backend() -> str:
+    """Name of the active verify backend ('coincurve' or 'pure-python')."""
+    return _backend or 'unknown'
 
 
 def tagged_hash(tag: str, msg: bytes) -> bytes:
@@ -125,3 +132,33 @@ def sign(seckey: bytes, msg: bytes, aux: bytes = None) -> bytes:
 def pubkey_for(seckey: bytes) -> bytes:
     P = point_mul(G, int.from_bytes(seckey, 'big'))
     return P[0].to_bytes(32, 'big')
+
+
+try:
+    from coincurve import PublicKey as _CCPublicKey  # noqa
+
+    def _cc_verify(pubkey: bytes, msg: bytes, sig: bytes) -> bool:
+        if len(pubkey) != 32 or len(msg) != 32 or len(sig) != 64:
+            return False
+        try:
+            pk = _CCPublicKey(pubkey)
+        except Exception:
+            return False
+        try:
+            return bool(pk.verify_schnorr(sig, msg))
+        except Exception:
+            return False
+
+    # Broken coincurve builds (wrong-arch wheel, ABI mismatch) can return
+    # False for every signature — which silently rejects ALL events and
+    # looks exactly like a network outage. Prove the fast path at startup;
+    # fall back to the reference implementation when it fails.
+    if _self_test(_cc_verify):
+        verify = _cc_verify
+        _backend = 'coincurve (self-test ok)'
+    else:
+        verify = _pure_verify
+        _backend = 'pure-python (coincurve FAILED self-test — replaced)'
+except ImportError:
+    verify = _pure_verify
+    _backend = 'pure-python'
