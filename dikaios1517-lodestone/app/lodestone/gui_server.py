@@ -269,6 +269,8 @@ class Gui:
             'uptime_s': int(time.time() - self.started),
             'last_purge': self.last_purge,
             'relay_name': self.cfg['relay']['name'],
+            'owner_set': bool(self.cfg['owner']['pubkey']),
+            'last_poll': getattr(self.aggregator, 'last_poll', None),
         })
 
     # ---------------------------------------------------------------- config

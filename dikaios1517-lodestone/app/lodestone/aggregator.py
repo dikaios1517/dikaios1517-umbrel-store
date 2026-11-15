@@ -26,6 +26,7 @@ class Aggregator:
         self.store = store
         self.cfg = config
         self.log = log or (lambda *a: None)
+        self.last_poll = None   # {'stored': n, 'relays': n, 'at': ts} after each sweep
 
     def _members(self) -> list[bytes]:
         """Owner + every graph pubkey, owner first."""
@@ -168,15 +169,30 @@ class Aggregator:
             self.store.set_relay_sync(url, int(time.time()))
         return stats
 
+    def _graph_fresh(self) -> bool:
+        ttl = max(60, int(self.cfg['graph']['refresh_hours']) * 3600)
+        ts = self.store.relay_sync('__graph__')
+        return ts is not None and time.time() - ts < ttl
+
     async def run_forever(self):
+        # Startup policy (spec): a note aggregation cycle begins only once a
+        # fresh social graph exists. If the graph is missing or stale, the
+        # crawler builds it first; wait for it (up to 10 minutes, so a
+        # failing crawl can't stall aggregation forever) before sweeping.
+        deadline = time.time() + 600
+        while not self._graph_fresh() and time.time() < deadline:
+            await asyncio.sleep(5)
         while True:
             started = time.time()
             try:
                 stats = await self.poll()
+                self.last_poll = {**stats, 'at': int(time.time())}
                 if stats['stored']:
                     self.log(f"aggregated {stats['stored']} events "
                              f"from {stats['relays']} relays")
             except Exception as e:
+                self.last_poll = {'stored': 0, 'relays': 0,
+                                  'at': int(time.time()), 'error': repr(e)}
                 self.log(f'aggregation error: {e!r}')
             interval = int(self.cfg['aggregation']['interval_minutes']) * 60
             await asyncio.sleep(max(30, interval - (time.time() - started)))

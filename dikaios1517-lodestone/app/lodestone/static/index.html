@@ -173,6 +173,21 @@
     </div>
 
     <div class="panel">
+      <h2>Aggregation status</h2>
+      <div id="st-owner-warn" class="muted" style="display:none;color:var(--accent);margin-bottom:8px;"></div>
+      <div class="row">
+        <div><label>Notes stored</label><div id="st-events">…</div></div>
+        <div><label>Graph size</label><div id="st-graph">…</div></div>
+      </div>
+      <div class="row">
+        <div><label>Last graph crawl</label><div id="st-crawl">…</div></div>
+        <div><label>Last aggregation sweep</label><div id="st-agg">…</div></div>
+      </div>
+      <button class="ghost" onclick="crawlNow()">Crawl graph now</button>
+      <span id="crawl-status" class="muted"></span>
+    </div>
+
+    <div class="panel">
       <h2>Relay identity</h2>
       <div class="row">
         <div><label>Relay name</label><input type="text" id="s-name"></div>
@@ -341,7 +356,7 @@ function show(tab) {
     $(t).classList.toggle('hidden', t !== tab);
   }
   if (tab === 'feed') loadFeed();
-  if (tab === 'settings') loadSettings();
+  if (tab === 'settings') { loadSettings(); loadStatus(); }
   if (tab === 'manage') loadManage();
 }
 function copyText(text) {
@@ -398,11 +413,28 @@ function renderBody(text) {
   return html;
 }
 
-function loadSettings() {
+function loadStatus() {
   fetch('/api/status').then(r => r.json()).then(s => {
     $('ep-ws').textContent = s.relay_endpoint;
     $('ep-onion').textContent = s.onion_address || 'not available in this deployment';
+    $('st-events').textContent = s.events;
+    $('st-graph').textContent = s.graph_size + ' pubkeys';
+    $('st-crawl').textContent = s.last_crawl ? fmtAgo(s.last_crawl) + ' ago' : 'never';
+    const lp = s.last_poll;
+    $('st-agg').textContent = lp
+      ? fmtAgo(lp.at) + ' ago — ' + (lp.stored || 0) + ' notes from ' + (lp.relays || 0) + ' relays'
+        + (lp.error ? ' (error: ' + lp.error + ')' : '')
+      : 'never';
+    const warn = $('st-owner-warn');
+    if (!s.owner_set) {
+      warn.textContent = 'No owner npub is set — the graph has nothing to '
+        + 'aggregate from. Paste your npub below and click "Save identity".';
+      warn.style.display = 'block';
+    } else warn.style.display = 'none';
   });
+}
+function loadSettings() {
+  loadStatus();
   fetch('/api/config').then(r => r.json()).then(c => {
     $('s-name').value = c.relay.name || '';
     $('s-desc').value = c.relay.description || '';
@@ -535,6 +567,16 @@ function addFilter(which) {
 function saveFilters() {
   post('/api/filters', { words: window._filters.words, hashtags: window._filters.hashtags })
     .then(ok => ok && toast('Word filters saved'));
+}
+function crawlNow() {
+  $('crawl-status').textContent = 'crawling… a depth-3 crawl can take several minutes';
+  fetch('/api/crawl', { method: 'POST' }).then(r => r.json()).then(s => {
+    $('crawl-status').textContent = 'done — ' + (s.pubkeys || 0) + ' pubkeys in graph';
+    toast('Graph crawl complete');
+    loadStatus();
+  }).catch(() => {
+    $('crawl-status').textContent = 'crawl failed — check the container logs';
+  });
 }
 function restartRelay() {
   if (!confirm('Restart the relay now?')) return;

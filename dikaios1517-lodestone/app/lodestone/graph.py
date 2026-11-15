@@ -162,14 +162,28 @@ class GraphCrawler:
             self.log(f'fetched relay lists for {len(leaf)} leaf pubkeys')
 
         self.store.set_graph([(pk, d) for pk, d in graph.items()])
+        self.store.set_relay_sync('__graph__', int(time.time()))
         return {'ok': True, 'pubkeys': len(graph)}
 
+    def graph_age(self) -> float | None:
+        """Seconds since the last COMPLETED crawl, or None if never."""
+        ts = self.store.relay_sync('__graph__')
+        return None if ts is None else time.time() - ts
+
     async def run_forever(self):
+        # Startup policy (spec): if no social graph exists, or the existing
+        # one is older than the refresh window, build it first. If it is
+        # still fresh from a previous run, skip straight ahead so the
+        # aggregator can begin immediately.
+        interval = max(60, int(self.cfg['graph']['refresh_hours']) * 3600)
         while True:
+            age = self.graph_age()
+            if age is not None and age < interval:
+                await asyncio.sleep(interval - age)
+                continue
             started = time.time()
             try:
                 await self.crawl()
             except Exception as e:
                 self.log(f'graph crawl error: {e!r}')
-            interval = int(self.cfg['graph']['refresh_hours']) * 3600
             await asyncio.sleep(max(60, interval - (time.time() - started)))

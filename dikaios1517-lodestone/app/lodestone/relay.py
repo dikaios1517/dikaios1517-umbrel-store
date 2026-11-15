@@ -319,7 +319,7 @@ class Relay:
             'supported_nips': [1, 2, 9, 11, 13, 16, 33, 40, 42, 45, 50, 51,
                                65, 70, 86],
             'software': 'https://github.com/Dikaios1517/lodestone',
-            'version': '0.1.2',
+            'version': '0.1.4',
             'onion': self.onion_host,
         }
 

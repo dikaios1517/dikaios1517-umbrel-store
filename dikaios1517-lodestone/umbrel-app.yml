@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-lodestone
 category: social
 name: Lodestone
-version: "0.1.2"
+version: "0.1.4"
 tagline: A personal Nostr relay that follows your social graph
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-lodestone/icon.png
 description: >-
@@ -65,7 +65,7 @@ description: >-
   software — no code from any other relay.
 
 
-  This package runs Lodestone v0.1.2.
+  This package runs Lodestone v0.1.4.
 developer: Dikaios1517
 website: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 repo: https://github.com/Dikaios1517/dikaios1517-umbrel-store
@@ -75,11 +75,11 @@ submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
 port: 3001
 gallery: []
 releaseNotes: >-
-  0.1.2: save actions now show a toast confirmation (the toast element was
-  unstyled and effectively invisible); new "Restart relay" button in Settings
-  restarts the relay so saved changes take effect immediately; settings
-  toggles now render as visible switches (previously only their labels
-  showed). First release: social-graph inbox relay with automatic per-author
+  0.1.4: startup order per spec — on every restart the relay builds the social
+  graph only if it is missing or older than the refresh window (24 h); with a
+  fresh graph it proceeds straight to note aggregation. The "Last graph crawl"
+  stat now records real crawl completions. Also in 0.1.2: save toasts, "Restart relay" button, visible toggle
+  switches. First release: social-graph inbox relay with automatic per-author
   relay discovery, five-minute aggregation sweeps, stranger proof-of-work
   gating, calendar-month retention with owner exemption, and a slate/orange
   management GUI with a feed, live settings, and moderation tools.
