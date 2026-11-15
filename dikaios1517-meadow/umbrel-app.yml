@@ -1,0 +1,63 @@
+manifestVersion: 1
+id: dikaios1517-meadow
+category: social
+name: Meadow
+version: "0.1.1"
+tagline: Browse the Blossom media of your Nostr social graph
+icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-meadow/icon.png
+description: >-
+  Meadow is a read-only media gallery for Nostr. Enter any npub — your own
+  or someone else's — and Meadow walks their social graph: it reads their
+  follow list (kind 3) and relay list (kind 10002), collects every media
+  server those people declared (kind 10063), and gathers the photos and
+  videos the whole graph actually posted, displayed as one scrollable
+  meadow.
+
+
+  Media is discovered from the graph's own posts — NIP-68 picture events,
+  video events, and NIP-92 file attachments — with Blossom servers
+  (BUD-02 blob listings) queried as a secondary source for the people who
+  declared them. Everything is fetched from public relays and public
+  servers: no keys, no login, no writes.
+
+
+  The feed is deduplicated across servers, pages in gradually (30 items at
+  a time with a Load more button and infinite scroll), and renders common
+  photo types (JPG, PNG, GIF, WebP, AVIF) inline with video playback for
+  MP4/WebM and similar. Display names and avatars are pulled from kind 0
+  profiles in the background; each card links to the original blob.
+
+
+  A short-lived graph cache (12 hours, with a manual refresh toggle) keeps
+  repeat visits instant. All settings — index relays, fallback media
+  servers, page size, timeouts, concurrency and size limits — are in a
+  plain JSON file at Files -> Apps -> Meadow -> data -> meadow.json.
+
+
+  Click the Meadow icon on your Umbrel dashboard to open the gallery. The
+  web UI is also served directly at http://umbrel:3010. Meadow is
+  clean-room software — no code from any other client.
+developer: Dikaios1517
+website: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+repo: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+support: https://github.com/Dikaios1517/dikaios1517-umbrel-store/issues
+submitter: Kris Kord
+submission: https://github.com/dikaios1517/dikaios1517-umbrel-store
+port: 3010
+gallery: []
+releaseNotes: >-
+  0.1.1: media linked in plain kind 1 notes is now included (Blossom-style
+  URLs pasted in the note text, extracted from the content — the note
+  itself is never shown), and the feed gained photo/video filters
+  (Photos & video / Photos / Videos / Everything).
+  0.1.0: first release — social-graph media browser: enter an npub, Meadow
+  walks its follows and relay lists, harvests the graph's picture/video
+  events and Blossom media-server declarations, queries servers that allow
+  public listing, and serves a deduplicated, paginated photo/video feed
+  with background profile enrichment.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: false
+torOnly: false

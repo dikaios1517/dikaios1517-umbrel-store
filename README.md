@@ -10,6 +10,7 @@ Currently included:
 |---|---|---|
 | `dikaios1517-wisp` | Wisp — a fast, lightweight private Nostr relay (v0.9.3), with a built-in management dashboard (client addresses, settings editor, one-click relay restart), ported from [Start9-Community/wisp-startos](https://github.com/Start9-Community/wisp-startos) | [privkeyio/wisp](https://github.com/privkeyio/wisp) |
 | `dikaios1517-lodestone` | Lodestone — a clean-room personal Nostr relay in Python that follows your social graph (3 levels deep), aggregates your community's notes from the relays they write to, and serves a slate/orange management GUI with a feed, live settings, and moderation tools | Built in this repo (`dikaios1517-lodestone/app/`) |
+| `dikaios1517-meadow` | Meadow — a read-only media gallery: enter any npub and browse the photos and videos its whole social graph posted, gathered from Nostr media events and public Blossom servers | Built in this repo (`dikaios1517-meadow/app/`) |
 
 ## Lodestone: management GUI and ports
 
@@ -39,6 +40,7 @@ aggregation interval, stranger PoW, retention, allowed kinds, limits /
 rate-limits / timeouts / security), Manage (manual purge, kind-1984 reports,
 blacklist/whitelist by npub, rejected words/hashtags).
 
+
 **NIPs:** 1, 2, 9, 11, 13, 16, 33, 40, 42, 45 (COUNT), 50 (search), 51, 65,
 70 (protected events), 86 (management API — owner-only via NIP-98, served on
 the GUI port at `/nip86`), 98 (auth). NIP-77 negentropy is planned for v2.
@@ -46,6 +48,26 @@ the GUI port at `/nip86`), 98 (auth). NIP-77 negentropy is planned for v2.
 Config lives at `data/lodestone.toml` in the app's persistent storage (seeded
 with defaults on first start; the GUI writes it). The relay's Tor address
 appears in the GUI once remote Tor access is enabled in umbrelOS.
+
+## Meadow: social-graph media gallery
+
+Meadow is **read-only**: enter any npub and it walks that user's social
+graph one level (kind 3 follows via kind 10002 relay lists), collects each
+author's kind 10063 media-server declarations, and gathers the media the
+whole graph actually posted — NIP-68 picture/video events (kinds 20, 21,
+22) and NIP-92 `imeta` attachments in notes, with Blossom BUD-02 blob
+listings as a secondary source for authors who declared a server that
+allows public listing.
+
+**Ports:** `http://umbrel:3010` — the gallery (manifest port, dashboard
+icon, and Tor onion all route through Umbrel's app proxy). No other
+service, no exposed raw port; the app makes only outbound requests.
+
+**Notes:** media renders inline (JPG/PNG/GIF/WebP/AVIF images, MP4/WebM
+video) through a size-capped proxy; the feed pages 30 items at a time with
+infinite scroll and a Load-more button; display names/avatars come from
+kind 0 profiles fetched in the background. The graph cache (12 h) and all
+limits live in `data/meadow.json` (Files -> Apps -> Meadow -> data).
 
 ## Wisp: management dashboard and ports
 

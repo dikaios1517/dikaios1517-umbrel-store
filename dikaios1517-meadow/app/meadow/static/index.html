@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meadow</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="/static/logo.svg" alt="" width="34" height="34">
+    <h1>Meadow</h1>
+  </div>
+  <form id="browse-form">
+    <input id="npub" type="text" autocomplete="off" spellcheck="false"
+           placeholder="npub… (yours or anyone's)">
+    <button id="browse-btn" type="submit">Browse</button>
+    <label class="force" title="Ignore the cached graph and re-walk">
+      <input id="force" type="checkbox"> refresh
+    </label>
+  </form>
+</header>
+
+<div id="status" class="status" hidden></div>
+<div id="filterbar" class="filterbar" hidden>
+  <button class="chip active" data-kinds="media">Photos &amp; video</button>
+  <button class="chip" data-kinds="image">Photos</button>
+  <button class="chip" data-kinds="video">Videos</button>
+  <button class="chip" data-kinds="all">Everything</button>
+  <span id="feedstats" class="muted"></span>
+</div>
+
+<main><div id="grid" class="grid"></div>
+<div id="sentinel" hidden></div>
+<button id="more" type="button" hidden>Load more</button>
+<div id="empty" class="empty" hidden></div>
+</main>
+
+<footer><span class="muted">Meadow reads public data only — kind 3 follows,
+kind 10063 media-server lists, and BUD-02 blob listings. No keys, no
+login.</span></footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

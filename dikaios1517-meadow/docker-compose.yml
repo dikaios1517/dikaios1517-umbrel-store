@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Forwards the app's Umbrel page / Tor hidden service / LAN port to
+      # the Meadow gallery UI on port 3010. Meadow is read-only and makes
+      # no authenticated outbound connections.
+      APP_HOST: dikaios1517-meadow_meadow_1
+      APP_PORT: 3010
+      PROXY_AUTH_ADD: "false"
+
+  meadow:
+    # Image is built and pushed by the build-apps workflow to
+    # ghcr.io/dikaios1517, tagged with the version in umbrel-app.yml.
+    image: ghcr.io/dikaios1517/dikaios1517-meadow:0.1.1
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+    environment:
+      # umbreld injects the app's Tor hostname here (not-enabled.onion
+      # unless remote Tor access is switched on).
+      MEADOW_ONION: ${APP_HIDDEN_SERVICE:-not-enabled.onion}
+    healthcheck:
+      # /bin/sh is dash, which has no /dev/tcp — use the bundled python3.
+      test: ["CMD-SHELL", "python3 -c \"import socket; socket.create_connection(('127.0.0.1', 3010), 2)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
