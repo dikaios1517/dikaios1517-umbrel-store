@@ -1,0 +1,67 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Forwards the app's Umbrel page / Tor hidden service / LAN port to
+      # Apache inside the web container. Jethro's UI owns the app_proxy slot;
+      # no Docker ports: publish on this port.
+      APP_HOST: dikaios1517-jethro_web_1
+      APP_PORT: 80
+      PROXY_AUTH_ADD: "false"
+
+  web:
+    # Built and pushed by the build-apps workflow to ghcr.io/dikaios1517,
+    # tagged with the version in umbrel-app.yml (keep the two in sync).
+    image: ghcr.io/dikaios1517/dikaios1517-jethro:2.39.0
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Rendered into conf.php on first start by the entrypoint.
+      JETHRO_DB_HOST: db
+      JETHRO_DB_NAME: jethro
+      JETHRO_DB_USER: jethro
+      # Container-internal only; change it in the app's data/conf.php if you
+      # ever move the database off this app.
+      JETHRO_DB_PASSWORD: jethro-umbrel-internal
+    volumes:
+      - ${APP_DATA_DIR}:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1/ -o /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  db:
+    image: mariadb:11.4
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/mysql:/var/lib/mysql
+    environment:
+      MARIADB_DATABASE: jethro
+      MARIADB_USER: jethro
+      MARIADB_PASSWORD: jethro-umbrel-internal
+      MARIADB_ROOT_PASSWORD: jethro-umbrel-root
+      MARIADB_AUTO_UPGRADE: "true"
+      MARIADB_DISABLE_LOG_BIN: "1"
+    # Jethro's requirements (README): utf8mb4/utf8mb4_unicode_ci,
+    # ONLY_FULL_GROUP_BY disabled, log_bin_trust_function_creators enabled.
+    # MariaDB is only reachable inside this app's compose network.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+      - --log-bin-trust-function-creators=1
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s

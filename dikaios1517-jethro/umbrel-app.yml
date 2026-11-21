@@ -1,0 +1,45 @@
+manifestVersion: 1
+id: dikaios1517-jethro
+category: utility
+name: Jethro PMM
+version: "2.39.0"
+tagline: Church membership, attendance, rosters and pastoral care tracking
+icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-jethro/icon.png
+description: >-
+  Jethro Pastoral Ministry Manager is a free, open-source (GPL) web app that
+  helps churches keep track of people, families, groups, attendance, rosters,
+  services and pastoral care. People and families live in one searchable
+  directory; attendance can be recorded week by week per person or group; and
+  notes can be attached to any person or family and assigned to another user
+  for follow-up — which is how pastoral visits and diaconal needs get tracked
+  (each visit or need is a note, with an assignee and a completion status).
+
+
+  Everything runs on your own Umbrel: the database and uploads live in the
+  app's persistent storage, nothing leaves your home network. The whole
+  congregation's data stays yours.
+
+
+  On first open Jethro shows its own installer: choose the default database
+  settings shown in the README (they are pre-configured) and create the
+  initial admin account. You can then add members, import from CSV, and
+  record your first attendance. The web UI is also reachable directly at
+  http://umbrel:3011 on your LAN.
+developer: tbar0970 (Jethro PMM project)
+website: https://www.jethro-pmm.com
+repo: https://github.com/tbar0970/jethro-pmm
+support: https://github.com/tbar0970/jethro-pmm/issues
+submitter: Kris Kord
+submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+port: 3011
+gallery: []
+releaseNotes: >-
+  Initial Umbrel packaging of Jethro PMM 2.39.0 (release archive with PHP
+  dependencies included), backed by MariaDB with Jethro's required database
+  settings applied automatically.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: false
+torOnly: false

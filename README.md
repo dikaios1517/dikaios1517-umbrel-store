@@ -11,6 +11,7 @@ Currently included:
 | `dikaios1517-wisp` | Wisp — a fast, lightweight private Nostr relay (v0.9.3), with a built-in management dashboard (client addresses, settings editor, one-click relay restart), ported from [Start9-Community/wisp-startos](https://github.com/Start9-Community/wisp-startos) | [privkeyio/wisp](https://github.com/privkeyio/wisp) |
 | `dikaios1517-lodestone` | Lodestone — a clean-room personal Nostr relay in Python that follows your social graph (3 levels deep), aggregates your community's notes from the relays they write to, and serves a slate/orange management GUI with a feed, live settings, and moderation tools | Built in this repo (`dikaios1517-lodestone/app/`) |
 | `dikaios1517-meadow` | Meadow — a read-only media gallery: enter any npub and browse the photos and videos its whole social graph posted, gathered from Nostr media events and public Blossom servers | Built in this repo (`dikaios1517-meadow/app/`) |
+| `dikaios1517-jethro` | Jethro PMM — church membership, attendance, rosters, services and pastoral-care notes (visits and diaconal needs tracked as assignable notes), packaged for umbrelOS with a bundled MariaDB | [tbar0970/jethro-pmm](https://github.com/tbar0970/jethro-pmm) |
 
 ## Lodestone: management GUI and ports
 
@@ -124,6 +125,36 @@ locally.
 The config file can still be edited directly (Files -> Apps -> Wisp -> data ->
 wisp.toml); values containing double quotes or newlines are rejected on save
 because Wisp's own TOML parser cannot represent them.
+
+## Jethro PMM: church membership and pastoral care
+
+Jethro PMM is a GPL web app for churches: a searchable directory of people and
+families, week-by-week attendance recording with reports, groups, rosters and
+service planning, and notes on any person or family that can be **assigned to
+another user for follow-up** — the mechanism for tracking pastoral/elder visits
+and diaconal needs (who hasn't been visited, what follow-up is outstanding).
+
+**Port:** `http://umbrel:3011` — the Jethro UI (manifest port, dashboard icon,
+and Tor onion all route through Umbrel's app proxy). MariaDB and the file
+store are internal; nothing else is exposed.
+
+**First run:** open the app — Jethro's own installer starts automatically.
+Accept the pre-filled database settings (already wired to the bundled
+MariaDB), create the initial admin account, and log in. Import members from
+CSV via Admin → Import persons.
+
+**Data locations** (Files → Apps → Hermes Agent's sibling app data):
+- `data/conf.php` — Jethro config, seeded on first start, never overwritten;
+  edit and restart the app to apply.
+- `data/files/` — uploaded documents and photos (symlinked into the install).
+- `data/mysql/` — the database itself. **Back this folder up** (it is only
+  consistent while the app is stopped) or use Jethro's Admin → Export
+  database.
+
+**Updating Jethro:** bump `JETHRO_VERSION` in `dikaios1517-jethro/Dockerfile`,
+bump `version:` in its `umbrel-app.yml` and the compose `image:` tag, push.
+Jethro applies its own database upgrades on first request after an upgrade.
+Read the upstream release notes before major version jumps.
 
 ## One-time setup
 
