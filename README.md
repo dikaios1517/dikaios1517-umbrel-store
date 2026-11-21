@@ -143,10 +143,10 @@ Accept the pre-filled database settings (already wired to the bundled
 MariaDB), create the initial admin account, and log in. Import members from
 CSV via Admin → Import persons.
 
-**Data locations** (Files → Apps → Hermes Agent's sibling app data):
+**Data locations** (Files → Apps → Jethro PMM → data):
 - `data/conf.php` — Jethro config, seeded on first start, never overwritten;
   edit and restart the app to apply.
-- `data/files/` — uploaded documents and photos (symlinked into the install).
+- `data/files/` — uploaded documents and photos (mounted into the web root).
 - `data/mysql/` — the database itself. **Back this folder up** (it is only
   consistent while the app is stopped) or use Jethro's Admin → Export
   database.
