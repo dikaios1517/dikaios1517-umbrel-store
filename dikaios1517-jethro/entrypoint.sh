@@ -33,6 +33,13 @@ EOF
 
 if [ -f "$CONF_SRC" ]; then
   log "Using persisted config at $CONF_SRC"
+  # Migrate configs written by 2.39.0-1, which pointed DB_HOST at the service
+  # name "db" - that name does not resolve because umbreld forces container
+  # names (<app>_<service>_1) and service-name DNS breaks with them.
+  if grep -q "define('DB_HOST', 'db');" "$CONF_SRC" 2>/dev/null; then
+    sed -i "s|define('DB_HOST', 'db');|define('DB_HOST', '${JETHRO_DB_HOST}');|" "$CONF_SRC" \
+      && log "Migrated DB_HOST to $JETHRO_DB_HOST"
+  fi
 elif [ -d "$CONF_SRC" ]; then
   # A previously failed mount can leave a directory where the file belongs.
   log "$CONF_SRC is a directory - replacing it with a file"

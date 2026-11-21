@@ -13,7 +13,7 @@ services:
   web:
     # Built and pushed by the build-apps workflow to ghcr.io/dikaios1517,
     # tagged with the version in umbrel-app.yml (keep the two in sync).
-    image: ghcr.io/dikaios1517/dikaios1517-jethro:2.39.0-1
+    image: ghcr.io/dikaios1517/dikaios1517-jethro:2.39.0-2
     init: true
     restart: on-failure
     stop_grace_period: 1m
@@ -22,7 +22,11 @@ services:
         condition: service_healthy
     environment:
       # Rendered into conf.php on first start by the entrypoint.
-      JETHRO_DB_HOST: db
+      # IMPORTANT: use the container NAME, not the service name "db" —
+      # umbreld forces <app>_<service>_1 container names, which breaks
+      # service-name DNS on umbrel_main_network (same mechanism app_proxy's
+      # APP_HOST relies on).
+      JETHRO_DB_HOST: dikaios1517-jethro_db_1
       JETHRO_DB_NAME: jethro
       JETHRO_DB_USER: jethro
       # Container-internal only; change it in the app's data/conf.php if you

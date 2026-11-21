@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-jethro
 category: utility
 name: Jethro PMM
-version: "2.39.0-1"
+version: "2.39.0-2"
 tagline: Church membership, attendance, rosters and pastoral care tracking
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-jethro/icon.png
 description: >-
@@ -34,15 +34,15 @@ submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 port: 3011
 gallery: []
 releaseNotes: >-
-  2.39.0-1: packaging fix - the first release seeded conf.php behind a
-  symlink and stored state outside the managed data folder, which could
-  leave the app reporting "Jethro configuration file not found". conf.php
-  now persists at data/conf.php (Files -> Apps -> Jethro PMM -> data) and
-  is copied into the web root on every start; uploads and the MariaDB
-  datadir moved under data/ as well. Existing installs: reinstall to reset.
-  2.39.0: initial Umbrel packaging of Jethro PMM 2.39.0 (release archive
-  with PHP dependencies included), backed by MariaDB with Jethro's required
-  database settings applied automatically.
+  2.39.0-2: database connectivity fix - umbrelOS forces <app>_<service>_1
+  container names, which breaks service-name DNS, so the bundled MariaDB is
+  now reached by container name; existing conf.php files are migrated
+  automatically on start. 2.39.0-1: packaging fix - conf.php now persists at
+  data/conf.php (Files -> Apps -> Jethro PMM -> data) and is copied into the
+  web root on every start; uploads and the MariaDB datadir moved under data/
+  as well. 2.39.0: initial Umbrel packaging of Jethro PMM 2.39.0 (release
+  archive with PHP dependencies included), backed by MariaDB with Jethro's
+  required database settings applied automatically.
 dependencies: []
 path: ""
 defaultUsername: ""
