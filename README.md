@@ -171,10 +171,13 @@ but their data never mixes.
 **First run / data locations:** identical to Jethro PMM above (installer on
 first open; `data/conf.php`, `data/files/`, `data/mysql/`).
 
-**License:** Jethro PMM is GPL-3.0; Kirk is a GPL fork. The fork's only file
-addition is the stylesheet (`jethro-2.39.0-custom.css`, copied over the
-upstream release archive in the image build); all ministry logic is untouched
-upstream code. The biweekly upstream update check covers the packaging of
+**License:** Jethro PMM is GPL-3.0; Kirk is a GPL fork. The fork adds only
+cosmetic files over the upstream release archive in the image build — the
+stylesheet (`jethro-2.39.0-custom.css`), the tab favicon (`favicon.ico`), a
+teal-tinted icon-glyph sprite (`kirk-glyphicons-teal.png`), the header logo —
+plus one `sed` in the Dockerfile that drops the hardcoded "Jethro - " prefix
+from the browser-tab `<title>`. All ministry logic is untouched upstream code.
+The biweekly upstream update check covers the packaging of
 plain Jethro; Kirk's updates are manual — bump `JETHRO_VERSION` in its
 Dockerfile, rename the stylesheet to `jethro-<newversion>-custom.css` (the
 filename embeds the version), and bump the manifest/compose version.

@@ -2,7 +2,8 @@
 # Kirk = the upstream Jethro 2.39.0 release archive (with PHP dependencies)
 # plus our custom dark/teal stylesheet, loaded via Jethro's built-in
 # jethro-<version>-custom.css hook. No source tree is stored in this repo;
-# the fork's only file addition is the stylesheet copied in below.
+# the fork's file additions are the stylesheet, tab favicon and icon
+# sprites copied in below (plus one sed for the tab title).
 FROM php:8.2-apache
 
 RUN apt-get update \
@@ -40,6 +41,12 @@ COPY jethro-2.39.0-custom.css /var/www/html/
 # Logo for the header (referenced by the stylesheet, left of the app title).
 COPY icon.png /var/www/html/kirk-logo.png
 COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
+# Browser tab: no <link rel=icon> exists upstream, so the tab favicon is the
+# root /favicon.ico — overwrite it with the Kirk cross. The <title> hardcodes
+# 'Jethro - ' before SYSTEM_NAME; strip it so the tab reads just 'Kirk'.
+COPY favicon.ico /var/www/html/favicon.ico
+RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
+         /var/www/html/templates/head.template.php
 
 RUN a2enmod headers
 COPY kirk-cache.conf "$APACHE_CONFDIR/conf-available/kirk-cache.conf"

@@ -475,3 +475,86 @@ input[type="button"] {
 [class*=" icon-"] {
   background-image: url(/kirk-glyphicons-teal.png) !important;
 }
+
+/* ---------- theme sweep v2: hover states, stray yellow, link colors ------ */
+
+/* Hovering/opening a dropdown menu li paints the WHOLE li lavender with dark
+   text (upstream .navbar .nav li.dropdown:hover rules, !important + higher
+   specificity) — the heading must stay dark-surfaced with light text. */
+.navbar .nav li.dropdown:hover,
+.navbar .nav li.dropdown.open,
+.navbar .nav li.dropdown.active {
+  background: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.navbar .nav li.dropdown:hover > a,
+.navbar .nav li.dropdown:hover > .dropdown-toggle,
+.navbar .nav li.dropdown.open > .dropdown-toggle,
+.navbar .nav li.dropdown.active > .dropdown-toggle {
+  color: var(--kirk-text-bright) !important;
+  background: none !important;
+}
+.navbar .nav li.dropdown:hover .caret,
+.navbar .nav li.dropdown.open .caret,
+.navbar .nav li.dropdown.active .caret {
+  border-top-color: var(--kirk-accent-bright) !important;
+  border-bottom-color: var(--kirk-accent-bright) !important;
+}
+
+/* Dropdown sub-items: hover = teal background with DARK text for contrast
+   (was teal-on-teal). */
+.dropdown-menu li > a:hover,
+.dropdown-menu li > a:focus {
+  background: var(--kirk-accent) !important;
+  color: var(--kirk-bg) !important;
+}
+#body .dropdown-menu li a:hover,
+#body .dropdown-menu li a:focus {
+  color: var(--kirk-bg) !important;
+}
+
+/* Upstream paints dropdown links inside #body pale yellow with an ID selector
+   (phone-number context menu: Call / Send WhatsApp / Copy number) — light text. */
+#body .dropdown-menu li a {
+  color: var(--kirk-text) !important;
+}
+
+/* All in-content links (View / Edit / Add Note, phone numbers, Include
+   Archived, ...) get the teal accent: upstream #647196 periwinkle via ID rule. */
+#body a:not(.label),
+.modal a,
+.clickable,
+button.btn-link,
+input.btn-link {
+  color: var(--kirk-accent) !important;
+}
+#body a:not(.label):hover,
+#body a:not(.label):focus,
+.modal a:hover,
+.modal a:focus,
+.clickable:hover,
+.clickable:focus {
+  color: var(--kirk-accent-bright) !important;
+}
+
+/* Mobile hamburger menu: every item anchor carries upstream's lavender
+   #A6ACC2 !important — dark surface + light text instead. */
+.nav-collapse .nav > li > a,
+.nav-collapse .dropdown-menu a,
+.nav-collapse .nav > li.user-header > a {
+  background: var(--kirk-surface) !important;
+  background-image: none !important;
+  color: var(--kirk-text-bright) !important;
+}
+.nav-collapse .nav > li > a:hover,
+.nav-collapse .nav > li > a:focus,
+.nav-collapse .dropdown-menu a:hover,
+.nav-collapse .dropdown-menu a:focus {
+  background: var(--kirk-surface-raised) !important;
+  color: var(--kirk-text-bright) !important;
+}
+.nav-collapse .nav > li > a .caret {
+  border-top-color: var(--kirk-accent) !important;
+  border-bottom-color: var(--kirk-accent) !important;
+}
