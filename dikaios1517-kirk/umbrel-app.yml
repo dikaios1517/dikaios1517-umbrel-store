@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-20"
+version: "2.39.0-21"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -65,7 +65,7 @@ releaseNotes: >-
   2.39.0-19: statistics summary row ("Whole System") and all Bootstrap table
   row-state colors (info/success/error/warning/active + row hover) are dark
   surfaces with light text instead of light-theme pastels.
-  2.39.0-20: stylesheet URL is version-queried (?v=N) so theme updates can
+  2.39.0-21: stylesheet URL is version-queried (?v=N) so theme updates can
   never be served from a stale cache. 2.39.0-9: responsive header - the single-row header now applies only to
   wide screens; narrow windows get a stacked header with the hamburger menu
   working and the logo contained in the bar. 2.39.0-8: logo/title and user button edge-aligned with the content panels
