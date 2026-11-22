@@ -208,76 +208,146 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   height: 32px !important;
 }
 
-/* ---------- header v2: single-row header ----------
+/* ---------- header v2: single-row header (wide screens) ----------
  * Upstream stacks two rows: toprow (logo/title + user dropdown) above the
- * menu row. Collapse the toprow to zero height and absolutely position its
- * contents into the menu row: logo+title at left, user dropdown at right,
- * menu in between. */
-#jethro-nav,
-#jethro-nav-background {
-  height: 44px !important;
+ * menu row. On wide screens, collapse the toprow to zero height and
+ * absolutely position its contents into the menu row: logo+title at left,
+ * user dropdown at right, menu in between. */
+@media (min-width: 980px) {
+  #jethro-nav,
+  #jethro-nav-background {
+    height: 44px !important;
+  }
+  #jethro-nav-toprow {
+    height: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    background-image: none !important;
+    border-bottom: none !important;
+    position: static !important;
+  }
+  #jethro-nav {
+    position: relative !important;
+  }
+  #jethro-nav-toprow h1 {
+    position: absolute !important;
+    top: 50% !important;
+    left: 5px !important;
+    margin: 0 !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    z-index: 999 !important;
+    transform: translateY(-50%);
+  }
+  #jethro-nav-toprow .brand {
+    background: url(/kirk-logo.png) no-repeat 50% 50% !important;
+    background-size: 34px 34px !important;
+    width: 46px !important;
+    height: 44px !important;
+    margin-right: 10px !important;
+  }
+  #jethro-nav-toprow .user-detail {
+    position: absolute !important;
+    top: 50% !important;
+    right: 15px !important;
+    float: none !important;
+    z-index: 999 !important;
+    transform: translateY(-50%);
+  }
+  #jethro-nav-toprow .user-detail > div {
+    height: 44px !important;
+  }
+  /* global search (shown on non-home pages) keeps toprow's right side clear */
+  #jethro-nav-toprow .global-search {
+    position: absolute !important;
+    top: 8px !important;
+    right: 70px !important;
+    margin: 0 !important;
+  }
+  /* clear the menu out from under the absolutely-positioned title/logo and
+     user dropdown */
+  .nav-collapse {
+    padding-right: 70px !important;
+  }
+  .nav-collapse ul.nav {
+    background: transparent !important; /* upstream paints this #858A9B !important */
+    background-image: none !important;
+    margin-left: 160px !important;
+  }
+  .navbar .nav > li > a {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .navbar .nav > li > a:hover,
+  .navbar .nav > li > a:focus {
+    background: var(--kirk-surface-raised) !important;
+    color: var(--kirk-text-bright) !important;
+  }
+  .navbar .divider-vertical {
+    border-left-color: var(--kirk-border) !important;
+    border-right-color: var(--kirk-border) !important;
+  }
 }
-#jethro-nav-toprow {
-  height: 0 !important;
-  overflow: visible !important;
-  background: transparent !important;
-  background-image: none !important;
-  border-bottom: none !important;
+
+/* ---------- header (narrow screens): restore stacked two-row layout ------
+ * Jethro's narrow breakpoint shows the hamburger + collapsed menu in the
+ * toprow; the desktop absolute positioning above breaks it (logo overflowing
+ * the bar, menu unreachable). Restore a normal-height toprow at this width. */
+@media (max-width: 979px) {
+  #jethro-nav,
+  #jethro-nav-background {
+    height: auto !important;
+  }
+  #jethro-nav-toprow {
+    position: relative !important;
+    height: 48px !important;
+    background: var(--kirk-surface) !important;
+    background-image: none !important;
+    border-bottom: 1px solid var(--kirk-border);
+  }
+  #jethro-nav-toprow h1 {
+    position: static !important;
+    display: inline-block !important;
+    height: 48px !important;
+    line-height: 48px !important;
+    margin: 0 !important;
+    padding-left: 8px !important;
+    transform: none !important;
+  }
+  #jethro-nav-toprow .brand {
+    background-size: 30px 30px !important;
+    width: 38px !important;
+    height: 44px !important;
+  }
+  #jethro-nav-toprow .user-detail {
+    position: absolute !important;
+    top: 50% !important;
+    right: 10px !important;
+    float: none !important;
+    transform: translateY(-50%);
+  }
+  #jethro-nav-toprow .user-detail > div {
+    height: 44px !important;
+  }
+  #jethro-nav-toprow .global-search {
+    position: static !important;
+    margin: 8px 70px 8px 8px !important;
+  }
+  .nav-collapse {
+    padding-right: 0 !important;
+    background: var(--kirk-surface) !important;
+  }
+  .nav-collapse ul.nav {
+    margin-left: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+  }
+  .navbar .nav > li > a {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
 }
-#jethro-nav-toprow h1 {
-  position: absolute !important;
-  top: 0 !important;
-  margin: 0 !important;
-  height: 44px !important;
-  line-height: 44px !important;
-  z-index: 999 !important;
-}
-#jethro-nav-toprow .brand {
-  background-size: 34px 34px !important;
-  width: 46px !important;
-  height: 44px !important;
-  margin-right: 10px !important;
-}
-#jethro-nav-toprow .user-detail {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  float: none !important;
-  z-index: 999 !important;
-}
-#jethro-nav-toprow .user-detail > div {
-  height: 44px !important;
-}
-/* global search (shown on non-home pages) keeps toprow's right side clear */
-#jethro-nav-toprow .global-search {
-  position: absolute !important;
-  top: 8px !important;
-  right: 70px !important;
-  margin: 0 !important;
-}
-/* clear the menu out from under the absolutely-positioned title/logo and
-   user dropdown */
-.nav-collapse {
-  padding-right: 70px !important;
-}
-.nav-collapse ul.nav {
-  background: transparent !important; /* upstream paints this #858A9B !important */
-  background-image: none !important;
-  margin-left: 160px !important;
-}
-.navbar .nav > li > a {
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
-}
-.navbar .nav > li > a:hover,
-.navbar .nav > li > a:focus {
-  background: var(--kirk-surface-raised) !important;
-  color: var(--kirk-text-bright) !important;
-}
-.navbar .divider-vertical {
-  border-left-color: var(--kirk-border) !important;
-  border-right-color: var(--kirk-border) !important;
-}
+
 /* menu dropdown carets: upstream pale yellow -> teal accent */
 .navbar .nav li.dropdown > .dropdown-toggle .caret,
 .navbar .caret {
@@ -288,29 +358,6 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
 .navbar .nav li.dropdown > a:focus .caret {
   border-top-color: var(--kirk-accent-bright) !important;
   border-bottom-color: var(--kirk-accent-bright) !important;
-}
-
-/* ---------- header v3: vertical centering + user button polish ----------
- * Position the brand and the user dropdown against #jethro-nav itself
- * (it must be the positioned ancestor — when it wasn't, top:50% resolved
- * against the page and dropped both mid-viewport). This also lines the
- * logo up with the menu band's left edge and the user button with its
- * right edge. */
-#jethro-nav {
-  position: relative !important;
-}
-#jethro-nav-toprow {
-  position: static !important;
-}
-#jethro-nav-toprow h1 {
-  top: 50% !important;
-  left: 5px !important;
-  transform: translateY(-50%);
-}
-#jethro-nav-toprow .user-detail {
-  top: 50% !important;
-  right: 15px !important;
-  transform: translateY(-50%);
 }
 /* the user button shows an icon glyph + caret; make both teal (were
    dark-on-dark) */
