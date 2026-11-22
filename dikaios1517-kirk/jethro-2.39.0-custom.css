@@ -575,3 +575,10 @@ input.btn-link {
   border-top-color: var(--kirk-accent) !important;
   border-bottom-color: var(--kirk-accent) !important;
 }
+
+/* attendance-record / roster-edit keyboard cursor: upstream paints the active
+   row light green (#ccffcc) — dark surface + teal outline instead */
+#body .rosteree-highlighted {
+  background: var(--kirk-surface-raised) !important;
+  outline: 3px solid var(--kirk-accent-deep) !important;
+}
