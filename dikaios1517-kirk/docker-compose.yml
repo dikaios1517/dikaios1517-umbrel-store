@@ -13,7 +13,7 @@ services:
   web:
     # Built and pushed by the build-apps workflow to ghcr.io/dikaios1517,
     # tagged with the version in umbrel-app.yml (keep the two in sync).
-    image: ghcr.io/dikaios1517/dikaios1517-kirk:2.39.0-1
+    image: ghcr.io/dikaios1517/dikaios1517-kirk:2.39.0-2
     init: true
     restart: on-failure
     stop_grace_period: 1m

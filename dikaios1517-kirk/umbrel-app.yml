@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-1"
+version: "2.39.0-2"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -38,9 +38,13 @@ submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 port: 3012
 gallery: []
 releaseNotes: >-
-  Initial release: Jethro PMM 2.39.0 with a dark interface (light teal-blue
-  accents) via the upstream custom-CSS hook, bundled MariaDB with Jethro's
-  required database settings, and a Celtic cross icon.
+  2.39.0-2: theme fix - Jethro loads the custom stylesheet INSTEAD of its
+  packaged CSS (if/elseif in the head template), so the first release rendered
+  a raw unstyled menu. The custom file is now a complete stylesheet (upstream
+  compiled CSS + the dark/teal overrides appended). 2.39.0-1: initial release
+  - Jethro PMM 2.39.0 with a dark interface (light teal-blue accents), a
+  Celtic cross icon, and a bundled MariaDB with Jethro's required database
+  settings.
 dependencies: []
 path: ""
 defaultUsername: ""
