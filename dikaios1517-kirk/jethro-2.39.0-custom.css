@@ -177,3 +177,33 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
 ::-webkit-scrollbar-track { background: var(--kirk-bg); }
 ::-webkit-scrollbar-thumb { background: var(--kirk-border); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--kirk-accent-deep); }
+
+/* ---------- header: dark top bar, Kirk title, logo ---------- */
+/* The light strip behind the title comes from #jethro-nav-background and
+   #jethro-nav-toprow (upstream lavender gradient), not .navbar-inner. */
+#jethro-nav-background,
+#jethro-nav,
+#jethro-nav-toprow {
+  background: var(--kirk-surface) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--kirk-border);
+  text-shadow: none !important;
+}
+/* The app title (SYSTEM_NAME): bigger and bold */
+#jethro-nav-toprow h1,
+#jethro-nav-toprow h1 span {
+  color: var(--kirk-text-bright) !important;
+  text-shadow: none !important;
+}
+#jethro-nav-toprow h1 span {
+  font-size: 26px !important;
+  font-weight: bold !important;
+}
+/* Replace the Jethro logo image (left of the title) with the Kirk
+   Celtic-cross icon, served from /kirk-logo.png (copied in the Dockerfile). */
+#jethro-nav-toprow .brand {
+  background: url(/kirk-logo.png) no-repeat 50% 50% !important;
+  background-size: 26px 26px !important;
+  width: 34px !important;
+  height: 32px !important;
+}

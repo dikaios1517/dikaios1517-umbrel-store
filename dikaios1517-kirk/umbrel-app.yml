@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-2"
+version: "2.39.0-3"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -38,6 +38,8 @@ submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 port: 3012
 gallery: []
 releaseNotes: >-
+  2.39.0-3: dark top bar (title strip no longer light gray), larger bold app
+  title, and the Kirk Celtic-cross icon shown as a logo beside the title.
   2.39.0-2: theme fix - Jethro loads the custom stylesheet INSTEAD of its
   packaged CSS (if/elseif in the head template), so the first release rendered
   a raw unstyled menu. The custom file is now a complete stylesheet (upstream
