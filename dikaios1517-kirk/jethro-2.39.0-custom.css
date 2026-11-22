@@ -208,33 +208,32 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   height: 32px !important;
 }
 
-/* ---------- header v2: single-row header (wide screens) ----------
- * Upstream stacks two rows: toprow (logo/title + user dropdown) above the
- * menu row. On wide screens, collapse the toprow to zero height and
- * absolutely position its contents into the menu row: logo+title at left,
- * user dropdown at right, menu in between. */
+/* ---------- header v4: two-row header (wide screens) ----------
+ * Reverts the single-row experiment: the global search field has nowhere to
+ * live once logo/title and the user button share the menu row (it collided
+ * with the last menu items). Back to upstream's stacked layout, dark-themed:
+ * 48px toprow (logo+title left, user dropdown + global search floated right)
+ * above the 44px menu row. Band height 92px = 48 + 44, so the menu row's
+ * bottom edge sits exactly on the band's bottom edge. */
 @media (min-width: 980px) {
-  /* Band and row both 44px: the row fits INSIDE the band (menu link padding
-     10px + 20px text = 40px row), so the band's bottom edge matches the menu
-     without the overflow the old 44px-band/44px+-row pairing had. */
   #jethro-nav,
   #jethro-nav-background {
-    height: 44px !important;
-  }
-  .navbar {
-    margin-bottom: 0 !important;
-    min-height: 40px !important;
-  }
-  #jethro-nav-toprow {
-    height: 0 !important;
-    overflow: visible !important;
-    background: transparent !important;
-    background-image: none !important;
-    border-bottom: none !important;
-    position: static !important;
+    height: 92px !important;
   }
   #jethro-nav {
     position: relative !important;
+  }
+  .navbar {
+    margin-bottom: 0 !important;
+    min-height: 44px !important;
+  }
+  #jethro-nav-toprow {
+    position: relative !important;
+    height: 48px !important;
+    background: transparent !important;
+    background-image: none !important;
+    border-bottom: none !important;
+    overflow: visible !important;
   }
   #jethro-nav-toprow h1 {
     position: absolute !important;
@@ -254,36 +253,27 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
     margin-right: 10px !important;
   }
   #jethro-nav-toprow .user-detail {
-    position: absolute !important;
-    top: 50% !important;
-    right: 15px !important;
-    float: none !important;
-    z-index: 999 !important;
-    transform: translateY(-50%);
+    float: right !important;
+    margin: 7px 15px 0 0 !important;
   }
   #jethro-nav-toprow .user-detail > div {
-    height: 44px !important;
+    height: 34px !important;
   }
-  /* global search (shown on non-home pages) keeps toprow's right side clear */
   #jethro-nav-toprow .global-search {
-    position: absolute !important;
-    top: 8px !important;
-    right: 70px !important;
-    margin: 0 !important;
+    float: right !important;
+    margin: 7px 12px 0 0 !important;
   }
-  /* clear the menu out from under the absolutely-positioned title/logo and
-     user dropdown */
   .nav-collapse {
-    padding-right: 70px !important;
+    padding: 0 !important;
   }
   .nav-collapse ul.nav {
     background: transparent !important; /* upstream paints this #858A9B !important */
     background-image: none !important;
-    margin-left: 160px !important;
+    margin-left: 10px !important;
   }
   .navbar .nav > li > a {
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
   }
   .navbar .nav > li > a:hover,
   .navbar .nav > li > a:focus {
@@ -385,4 +375,103 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
 .global-search .btn .icon-search,
 .input-append .btn .icon-search {
   color: var(--kirk-accent) !important;
+}
+
+/* ---------- theme sweep: purge remaining lavender / cream / yellow ----------
+ * Upstream still paints table headers, panels and links with its lavender
+ * (#A6ACC2 / #858A9B), cream (#FFFFE0 / #FFFFF0) and pale-yellow (#fff19b)
+ * palette; map every remaining occurrence to the Kirk palette. */
+
+/* menu tabs: hover/open/active must stay LIGHT text (upstream flips to dark
+   #333 text on the lavender hover background) */
+.navbar .nav > li > a:hover,
+.navbar .nav > li > a:focus,
+.navbar .nav > li > a:active,
+.navbar .nav li.dropdown.open > .dropdown-toggle,
+.navbar .nav li.dropdown.active > .dropdown-toggle,
+.navbar .nav li.dropdown.open.active > .dropdown-toggle,
+.nav-collapse .nav > li > a:hover,
+.nav-collapse .nav > li > a:focus {
+  color: var(--kirk-text-bright) !important;
+  background: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  text-shadow: none !important;
+}
+
+/* dropdown submenu items: pale yellow -> light text, teal on hover */
+.dropdown-menu > li > a,
+.nav-collapse .dropdown-menu a {
+  color: var(--kirk-text) !important;
+  text-shadow: none !important;
+}
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+  color: var(--kirk-accent-bright) !important;
+}
+
+/* user panel (top right): gray -> dark, name -> teal accent, "Logged in as"
+   and the action links -> light */
+.user-detail .dropdown-menu,
+.user-detail .dropdown-menu .user-header a,
+.user-detail .user-header a,
+.user-header a {
+  background: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+}
+.user-detail .dropdown-menu .user-header a small,
+.user-header a small {
+  color: var(--kirk-text) !important;
+}
+.user-detail .dropdown-menu .user-header a b,
+.user-header a b {
+  color: var(--kirk-accent) !important;
+}
+.user-detail .dropdown-menu li > a,
+.user-detail .dropdown-menu li a {
+  color: var(--kirk-text-bright) !important;
+}
+.user-detail .restrictions {
+  background: var(--kirk-surface-raised) !important;
+  color: var(--kirk-text) !important;
+}
+
+/* table headers: lavender gradient + pale-yellow text -> dark + light */
+.table thead th,
+.table tfoot th,
+.table thead th *,
+.table tfoot th *,
+#body table.roster thead th {
+  color: var(--kirk-text-bright) !important;
+  background-color: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  border-color: var(--kirk-border) !important;
+}
+
+/* remaining lavender/cream surfaces -> Kirk surfaces */
+#login-header,
+.details-box h3,
+.accordion-heading,
+.table .table,
+.preview-pane,
+.tab-content,
+.family-member-box,
+.family-member,
+.details-box,
+#body table.roster td,
+#body table.roster tbody th,
+.a2hs-prompt,
+input[type="submit"],
+input[type="button"] {
+  background: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  border-color: var(--kirk-border) !important;
+  color: var(--kirk-text) !important;
+}
+
+/* bootstrap icon glyphs come from a DARK sprite -> invisible on dark
+   surfaces (blank search buttons, blank user icon). Point every glyph at a
+   teal-tinted sprite served from the web root. */
+[class^="icon-"],
+[class*=" icon-"] {
+  background-image: url(/kirk-glyphicons-teal.png) !important;
 }

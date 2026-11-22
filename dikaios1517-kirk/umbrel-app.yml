@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-11"
+version: "2.39.0-12"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -39,7 +39,12 @@ port: 3012
 gallery: []
 releaseNotes: >-
   2.39.0-11: revert of 2.39.0-10's self-sizing bar (it collapsed the header
-  layout); the 44px band is back with the menu row sized to fit inside it. 2.39.0-9: responsive header - the single-row header now applies only to
+  layout); the 44px band is back with the menu row sized to fit inside it.
+  2.39.0-12: two-row header restored (logo/title and user dropdown back above
+  the menu, global search field beside the user button); menu hover/open text
+  now light instead of dark; dropdown and user-panel links light instead of
+  yellow; user panel, table headers and remaining lavender/cream surfaces now
+  dark; icon glyphs tinted teal so search/user icons are visible. 2.39.0-9: responsive header - the single-row header now applies only to
   wide screens; narrow windows get a stacked header with the hamburger menu
   working and the logo contained in the bar. 2.39.0-8: logo/title and user button edge-aligned with the content panels
   below. 2.39.0-7: header positioning fix - logo/title and user button were anchored

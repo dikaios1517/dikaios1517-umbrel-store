@@ -39,6 +39,7 @@ RUN rm -rf /var/www/html/* \
 COPY jethro-2.39.0-custom.css /var/www/html/
 # Logo for the header (referenced by the stylesheet, left of the app title).
 COPY icon.png /var/www/html/kirk-logo.png
+COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
 
 RUN a2enmod headers
 COPY kirk-cache.conf "$APACHE_CONFDIR/conf-available/kirk-cache.conf"
