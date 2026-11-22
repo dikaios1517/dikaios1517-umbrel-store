@@ -582,3 +582,20 @@ input.btn-link {
   background: var(--kirk-surface-raised) !important;
   outline: 3px solid var(--kirk-accent-deep) !important;
 }
+
+/* Bootstrap table row-state colors are all light-theme pastels (Jethro marks
+   summary rows "info", archived/hover states etc.) — dark surfaces instead. */
+.table tbody tr.info > td, .table tbody tr.info > th,
+.table tbody tr.success > td, .table tbody tr.success > th,
+.table tbody tr.error > td, .table tbody tr.error > th,
+.table tbody tr.warning > td, .table tbody tr.warning > th,
+.table tbody tr.active > td, .table tbody tr.active > th,
+.table-hover tbody tr.info:hover > td, .table-hover tbody tr.info:hover > th,
+.table-hover tbody tr.success:hover > td, .table-hover tbody tr.success:hover > th,
+.table-hover tbody tr.error:hover > td, .table-hover tbody tr.error:hover > th,
+.table-hover tbody tr.warning:hover > td, .table-hover tbody tr.warning:hover > th,
+.table-hover tbody tr:hover > td, .table-hover tbody tr:hover > th {
+  background-color: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  color: var(--kirk-text) !important;
+}
