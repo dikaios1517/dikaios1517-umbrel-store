@@ -304,12 +304,12 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
 }
 #jethro-nav-toprow h1 {
   top: 50% !important;
-  left: 0 !important;
+  left: 5px !important;
   transform: translateY(-50%);
 }
 #jethro-nav-toprow .user-detail {
   top: 50% !important;
-  right: 0 !important;
+  right: 15px !important;
   transform: translateY(-50%);
 }
 /* the user button shows an icon glyph + caret; make both teal (were
