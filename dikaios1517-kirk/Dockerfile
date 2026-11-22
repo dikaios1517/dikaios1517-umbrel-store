@@ -33,9 +33,16 @@ RUN rm -rf /var/www/html/* \
  && chown -R www-data:www-data /var/www/html
 
 # The fork: dark/teal theme, loaded automatically by Jethro's custom-CSS hook.
+# The custom-CSS filename only changes with the upstream JETHRO_VERSION, not
+# with Kirk releases, so browsers must not cache it long — no-cache headers
+# for stylesheets below.
 COPY jethro-2.39.0-custom.css /var/www/html/
 # Logo for the header (referenced by the stylesheet, left of the app title).
 COPY icon.png /var/www/html/kirk-logo.png
+
+RUN a2enmod headers
+COPY kirk-cache.conf "$APACHE_CONFDIR/conf-available/kirk-cache.conf"
+RUN a2enconf kirk-cache
 
 # Silence the Apache ServerName warning.
 RUN echo "ServerName localhost" > "$APACHE_CONFDIR/conf-available/servername.conf" \
