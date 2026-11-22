@@ -261,7 +261,7 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   #jethro-nav-toprow .user-detail {
     order: 2;
     float: none !important;
-    margin: 0 15px 0 auto !important; /* auto = push the pair to the right */
+    margin: 0 15px 0 0 !important;
   }
   #jethro-nav-toprow .user-detail > div {
     height: 34px !important;
@@ -269,7 +269,8 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   #jethro-nav-toprow .global-search {
     order: 1;
     float: none !important;
-    margin: 0 12px 0 0 !important;
+    margin: 0 12px 0 auto !important; /* auto on the pair's FIRST item pushes
+                                        search + account button to the right */
   }
   .nav-collapse {
     padding: 0 !important;

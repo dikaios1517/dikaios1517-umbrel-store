@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-15"
+version: "2.39.0-16"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -54,7 +54,9 @@ releaseNotes: >-
   real favicon <link> (cache-proof) serves the Kirk icon in the browser tab;
   the mobile logo stays pinned when the search field is focused.
   2.39.0-15: the search field and account button move back to the right side
-  of the header (flex auto-margin). 2.39.0-9: responsive header - the single-row header now applies only to
+  of the header (flex auto-margin).
+  2.39.0-16: auto-margin corrected (belongs on the pair's first item) — the
+  search field was collapsing at the left edge under the title. 2.39.0-9: responsive header - the single-row header now applies only to
   wide screens; narrow windows get a stacked header with the hamburger menu
   working and the logo contained in the bar. 2.39.0-8: logo/title and user button edge-aligned with the content panels
   below. 2.39.0-7: header positioning fix - logo/title and user button were anchored
