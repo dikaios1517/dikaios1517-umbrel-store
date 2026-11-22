@@ -44,9 +44,15 @@ COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
 # Browser tab: no <link rel=icon> exists upstream, so the tab favicon is the
 # root /favicon.ico — overwrite it with the Kirk cross. The <title> hardcodes
 # 'Jethro - ' before SYSTEM_NAME; strip it so the tab reads just 'Kirk'.
+# The stylesheet href gets a Kirk-revision query (?v=N) so every Kirk release
+# is a brand-new URL — browsers and intermediaries can never serve a stale
+# theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
+ARG KIRK_REV=20
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
+         /var/www/html/templates/head.template.php \
+ && sed -i 's#custom.css; ?>"#custom.css?v=${KIRK_REV}; ?>"#' \
          /var/www/html/templates/head.template.php \
  && sed -i '\#apple-touch-icon#a <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/kirk-favicon.png"/>' \
          /var/www/html/templates/head.template.php
