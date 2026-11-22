@@ -599,3 +599,12 @@ input.btn-link {
   background-image: none !important;
   color: var(--kirk-text) !important;
 }
+
+/* The attendance-record keyboard/mouse cursor marks the active row
+   tr.hovered (and read-only lists use tr#selected) — upstream paints those
+   lavender #d3d6e1 !important. Dark surface + light text instead. */
+.hovered, .hovered td, tr#selected td, .table tbody tr.hovered > td {
+  background-color: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  color: var(--kirk-text) !important;
+}
