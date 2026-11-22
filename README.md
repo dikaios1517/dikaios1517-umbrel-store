@@ -12,6 +12,7 @@ Currently included:
 | `dikaios1517-lodestone` | Lodestone — a clean-room personal Nostr relay in Python that follows your social graph (3 levels deep), aggregates your community's notes from the relays they write to, and serves a slate/orange management GUI with a feed, live settings, and moderation tools | Built in this repo (`dikaios1517-lodestone/app/`) |
 | `dikaios1517-meadow` | Meadow — a read-only media gallery: enter any npub and browse the photos and videos its whole social graph posted, gathered from Nostr media events and public Blossom servers | Built in this repo (`dikaios1517-meadow/app/`) |
 | `dikaios1517-jethro` | Jethro PMM — church membership, attendance, rosters, services and pastoral-care notes (visits and diaconal needs tracked as assignable notes), packaged for umbrelOS with a bundled MariaDB | [tbar0970/jethro-pmm](https://github.com/tbar0970/jethro-pmm) |
+| `dikaios1517-kirk` | Kirk — the same Jethro PMM 2.39.0 engine with a modern dark interface (light teal-blue accents) and a Celtic cross identity; fully separate app with its own database and storage. Built from the upstream release archive plus the fork's stylesheet | Fork of [tbar0970/jethro-pmm](https://github.com/tbar0970/jethro-pmm); fork files in this repo (`dikaios1517-kirk/`) |
 
 ## Lodestone: management GUI and ports
 
@@ -155,6 +156,28 @@ CSV via Admin → Import persons.
 bump `version:` in its `umbrel-app.yml` and the compose `image:` tag, push.
 Jethro applies its own database upgrades on first request after an upgrade.
 Read the upstream release notes before major version jumps.
+
+## Kirk: Jethro PMM with a dark interface
+
+Kirk is a **fork** of Jethro PMM 2.39.0 — the identical ministry engine
+(people, families, attendance, rosters, pastoral-care notes) with a modern
+dark interface: near-black background, light teal-blue accents, shipped via
+Jethro's own `jethro-<version>-custom.css` hook, so the upstream code stays
+pristine and future upstream merges stay easy. The system name shows as
+"Kirk". It is a **separate app**: own app id, own port (`http://umbrel:3012`),
+own database and own storage — it can run alongside `dikaios1517-jethro`,
+but their data never mixes.
+
+**First run / data locations:** identical to Jethro PMM above (installer on
+first open; `data/conf.php`, `data/files/`, `data/mysql/`).
+
+**License:** Jethro PMM is GPL-3.0; Kirk is a GPL fork. The fork's only file
+addition is the stylesheet (`jethro-2.39.0-custom.css`, copied over the
+upstream release archive in the image build); all ministry logic is untouched
+upstream code. The biweekly upstream update check covers the packaging of
+plain Jethro; Kirk's updates are manual — bump `JETHRO_VERSION` in its
+Dockerfile, rename the stylesheet to `jethro-<newversion>-custom.css` (the
+filename embeds the version), and bump the manifest/compose version.
 
 ## One-time setup
 

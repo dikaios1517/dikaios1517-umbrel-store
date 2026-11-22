@@ -1,0 +1,49 @@
+manifestVersion: 1
+id: dikaios1517-kirk
+category: utility
+name: Kirk
+version: "2.39.0-1"
+tagline: Church membership, attendance and pastoral care - modern dark interface
+icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
+description: >-
+  Kirk is a dark-themed fork of Jethro Pastoral Ministry Manager, a free,
+  open-source (GPL) web app that helps churches keep track of people,
+  families, groups, attendance, rosters, services and pastoral care. Kirk
+  wraps the same engine in a modern dark interface with light teal-blue
+  accents and adds nothing else - your data stays on your own Umbrel, with
+  its own separate database and storage from any other app.
+
+
+  People and families live in one searchable directory; attendance can be
+  recorded week by week per person or group; and notes can be attached to any
+  person or family and assigned to another user for follow-up - which is how
+  pastoral visits and diaconal needs get tracked (each visit or need is a
+  note, with an assignee and a completion status).
+
+
+  On first open the built-in installer starts: choose the pre-configured
+  database settings and create the initial admin account. The web UI is also
+  reachable directly at http://umbrel:3012 on your LAN.
+
+
+  Kirk is a fork of Jethro PMM by tbar0970, licensed GPL-3.0; the upstream
+  project lives at github.com/tbar0970/jethro-pmm. Note: this fork carries a
+  custom stylesheet only - all ministry logic is untouched upstream code.
+developer: Dikaios1517 (fork of Jethro PMM by tbar0970)
+website: https://www.jethro-pmm.com
+repo: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+support: https://github.com/Dikaios1517/dikaios1517-umbrel-store/issues
+submitter: Kris Kord
+submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
+port: 3012
+gallery: []
+releaseNotes: >-
+  Initial release: Jethro PMM 2.39.0 with a dark interface (light teal-blue
+  accents) via the upstream custom-CSS hook, bundled MariaDB with Jethro's
+  required database settings, and a Celtic cross icon.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: false
+torOnly: false

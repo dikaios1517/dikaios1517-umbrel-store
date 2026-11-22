@@ -1,0 +1,149 @@
+/**
+ * Kirk — dark theme override for Jethro PMM 2.39.0
+ * Loaded automatically after the main stylesheet via the
+ * jethro-<version>-custom.css hook. Dark background, light teal-blue accents.
+ */
+
+:root {
+  --kirk-bg: #171d24;
+  --kirk-surface: #1f2831;
+  --kirk-surface-raised: #232e39;
+  --kirk-border: #33414e;
+  --kirk-text: #cfdae2;
+  --kirk-text-bright: #e9f0f5;
+  --kirk-text-dim: #8fa1ae;
+  --kirk-accent: #56c8d8;
+  --kirk-accent-bright: #7fdce8;
+  --kirk-accent-deep: #2f9aa8;
+}
+
+/* ---------- base ---------- */
+body {
+  background: var(--kirk-bg);
+  color: var(--kirk-text);
+}
+h1, h2, h3, h4, h5, h6, legend, .page-header {
+  color: var(--kirk-text-bright);
+}
+a { color: var(--kirk-accent); }
+a:hover { color: var(--kirk-accent-bright); }
+small, .muted, .help-inline, .help-block { color: var(--kirk-text-dim) !important; }
+hr { border-top-color: var(--kirk-border); }
+
+/* ---------- navbar ---------- */
+.navbar-inner, .navbar-inverse .navbar-inner {
+  background: var(--kirk-surface) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--kirk-border);
+}
+.navbar .brand, .navbar .nav > li > a {
+  color: var(--kirk-accent) !important;
+  text-shadow: none !important;
+}
+.navbar .nav > li > a:hover { color: var(--kirk-accent-bright) !important; }
+.navbar .nav > .active > a,
+.navbar .nav > .open > a {
+  color: var(--kirk-text-bright) !important;
+  background: var(--kirk-surface-raised) !important;
+}
+.navbar-text { color: var(--kirk-text) !important; }
+
+/* ---------- surfaces ---------- */
+.well, .modal, .dropdown-menu, .popover, .accordion-group,
+.jethro-panel, .form-actions {
+  background: var(--kirk-surface) !important;
+  background-image: none !important;
+  border-color: var(--kirk-border) !important;
+  color: var(--kirk-text);
+}
+.modal-header, .popover-title, .accordion-heading {
+  background: var(--kirk-surface-raised) !important;
+  border-bottom-color: var(--kirk-border) !important;
+  color: var(--kirk-text-bright);
+}
+.dropdown-menu li > a:hover,
+.dropdown-menu .active > a,
+.dropdown-menu .active > a:hover {
+  background: var(--kirk-accent-deep) !important;
+  color: #fff !important;
+}
+
+/* ---------- tables ---------- */
+.table th, .table td { border-color: var(--kirk-border) !important; }
+.table th { color: var(--kirk-text-bright); }
+.table-striped tbody > tr:nth-child(odd) > td,
+.table-striped tbody > tr:nth-child(odd) > th {
+  background-color: var(--kirk-surface) !important;
+}
+.table-hover tbody tr:hover > td,
+.table-hover tbody tr:hover > th {
+  background-color: var(--kirk-surface-raised) !important;
+}
+.jethro-data-table th, th.jethro-column-header { background: var(--kirk-surface-raised) !important; }
+
+/* ---------- forms ---------- */
+input[type="text"], input[type="password"], input[type="datetime"],
+input[type="email"], input[type="number"], input[type="search"],
+input[type="tel"], input[type="url"], select, textarea, .uneditable-input {
+  background: #202a34 !important;
+  background-image: none !important;
+  border-color: var(--kirk-border) !important;
+  color: var(--kirk-text-bright) !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--kirk-accent) !important;
+  box-shadow: 0 0 6px rgba(86, 200, 216, 0.35) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
+.radio input[type="radio"], .checkbox input[type="checkbox"] { filter: saturate(1.4); }
+
+/* ---------- buttons ---------- */
+.btn {
+  background: var(--kirk-surface-raised) !important;
+  background-image: none !important;
+  border-color: var(--kirk-border) !important;
+  color: var(--kirk-text) !important;
+  text-shadow: none !important;
+}
+.btn:hover, .btn:focus { color: var(--kirk-accent-bright) !important; border-color: var(--kirk-accent-deep) !important; }
+.btn-primary, .btn-info, .btn-success {
+  background: var(--kirk-accent-deep) !important;
+  background-image: none !important;
+  border-color: var(--kirk-accent-deep) !important;
+  color: #ffffff !important;
+}
+.btn-primary:hover, .btn-info:hover, .btn-success:hover {
+  background: var(--kirk-accent) !important;
+  border-color: var(--kirk-accent) !important;
+}
+.btn-danger { background: #a94438 !important; border-color: #a94438 !important; color: #fff !important; }
+
+/* ---------- alerts & labels ---------- */
+.alert { background: var(--kirk-surface-raised) !important; border-color: var(--kirk-border) !important; color: var(--kirk-text) !important; text-shadow: none !important; }
+.alert-success { border-left: 4px solid #66bb8a !important; }
+.alert-error, .alert-danger { border-left: 4px solid #d9695f !important; }
+.alert-info { border-left: 4px solid var(--kirk-accent) !important; }
+.label-important, .badge-important { background: #d9695f !important; }
+.label, .badge { background: var(--kirk-accent-deep) !important; }
+
+/* ---------- misc ---------- */
+.pagination ul > li > a, .pagination ul > li > span {
+  background: var(--kirk-surface); border-color: var(--kirk-border); color: var(--kirk-accent);
+}
+.pagination ul > .active > a { background: var(--kirk-accent-deep); color: #fff; }
+.nav-tabs > li > a { background: var(--kirk-surface); border-color: var(--kirk-border); color: var(--kirk-accent); }
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover {
+  background: var(--kirk-surface-raised) !important; color: var(--kirk-text-bright) !important;
+}
+.ui-widget-content, .ui-dialog, .ui-datepicker {
+  background: var(--kirk-surface) !important; color: var(--kirk-text) !important;
+  border-color: var(--kirk-border) !important;
+}
+.ui-widget-header { background: var(--kirk-surface-raised) !important; border-color: var(--kirk-border) !important; }
+.ui-state-default, .ui-widget-content .ui-state-default {
+  background: var(--kirk-surface-raised) !important; border-color: var(--kirk-border) !important; color: var(--kirk-text) !important;
+}
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--kirk-bg); }
+::-webkit-scrollbar-thumb { background: var(--kirk-border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--kirk-accent-deep); }
