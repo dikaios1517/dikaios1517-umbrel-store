@@ -257,6 +257,8 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   #jethro-nav-toprow {
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-end !important; /* right-pack: works on the home page
+    too, where the search field is absent from the DOM entirely */
   }
   #jethro-nav-toprow .user-detail {
     order: 2;
@@ -269,8 +271,7 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   #jethro-nav-toprow .global-search {
     order: 1;
     float: none !important;
-    margin: 0 12px 0 auto !important; /* auto on the pair's FIRST item pushes
-                                        search + account button to the right */
+    margin: 0 12px 0 0 !important;
   }
   .nav-collapse {
     padding: 0 !important;
