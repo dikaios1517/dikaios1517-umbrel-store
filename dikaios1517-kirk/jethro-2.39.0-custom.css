@@ -214,9 +214,16 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
  * absolutely position its contents into the menu row: logo+title at left,
  * user dropdown at right, menu in between. */
 @media (min-width: 980px) {
-  #jethro-nav,
+  /* The bar paints itself, so its bottom edge always matches the menu row's
+     bottom edge — a fixed band height overflowed when the row was taller. */
   #jethro-nav-background {
-    height: 44px !important;
+    display: none !important;
+  }
+  #jethro-nav {
+    height: auto !important;
+  }
+  .navbar {
+    margin-bottom: 0 !important;
   }
   #jethro-nav-toprow {
     height: 0 !important;
@@ -345,6 +352,9 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   .navbar .nav > li > a {
     padding-top: 10px !important;
     padding-bottom: 10px !important;
+  }
+  .navbar {
+    margin-bottom: 0 !important;
   }
 }
 
