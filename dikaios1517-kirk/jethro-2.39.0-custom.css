@@ -289,3 +289,26 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   border-top-color: var(--kirk-accent-bright) !important;
   border-bottom-color: var(--kirk-accent-bright) !important;
 }
+
+/* ---------- header v3: vertical centering + user button polish ---------- */
+/* brand/title and the user button shared the menu row but sat at top:0;
+   center everything on one line and pull the button off the viewport edge */
+#jethro-nav-toprow h1 {
+  top: 50% !important;
+  transform: translateY(-50%);
+}
+#jethro-nav-toprow .user-detail {
+  top: 50% !important;
+  right: 20px !important;
+  transform: translateY(-50%);
+}
+/* the user button shows an icon glyph + caret; make both teal (were
+   dark-on-dark) */
+#jethro-nav-toprow .user-detail #user-menu,
+#user-detail-in-nav .dropdown-toggle {
+  color: var(--kirk-accent) !important;
+}
+#user-detail-in-nav .dropdown-toggle .caret {
+  border-top-color: var(--kirk-accent) !important;
+  border-bottom-color: var(--kirk-accent) !important;
+}
