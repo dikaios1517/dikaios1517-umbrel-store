@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-6"
+version: "2.39.0-7"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -38,8 +38,9 @@ submission: https://github.com/Dikaios1517/dikaios1517-umbrel-store
 port: 3012
 gallery: []
 releaseNotes: >-
-  2.39.0-6: vertically centered logo/title and user button in the header,
-  user button pulled off the screen edge with a teal icon. 2.39.0-5: no-cache headers for stylesheets so theme updates render without
+  2.39.0-7: header positioning fix - logo/title and user button were anchored
+  to the page instead of the header bar; now vertically centered in the bar
+  and edge-aligned with the menu band, teal user icon, visible search icon. 2.39.0-5: no-cache headers for stylesheets so theme updates render without
   a hard browser refresh. 2.39.0-4: single-row header - logo and app name sit left of the menu, the
   user dropdown right of it; larger logo icon; the menu band is dark instead
   of gray, with teal dropdown carets and dark hover states. 2.39.0-3: dark top bar (title strip no longer light gray), larger bold app

@@ -290,16 +290,26 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   border-bottom-color: var(--kirk-accent-bright) !important;
 }
 
-/* ---------- header v3: vertical centering + user button polish ---------- */
-/* brand/title and the user button shared the menu row but sat at top:0;
-   center everything on one line and pull the button off the viewport edge */
+/* ---------- header v3: vertical centering + user button polish ----------
+ * Position the brand and the user dropdown against #jethro-nav itself
+ * (it must be the positioned ancestor — when it wasn't, top:50% resolved
+ * against the page and dropped both mid-viewport). This also lines the
+ * logo up with the menu band's left edge and the user button with its
+ * right edge. */
+#jethro-nav {
+  position: relative !important;
+}
+#jethro-nav-toprow {
+  position: static !important;
+}
 #jethro-nav-toprow h1 {
   top: 50% !important;
+  left: 0 !important;
   transform: translateY(-50%);
 }
 #jethro-nav-toprow .user-detail {
   top: 50% !important;
-  right: 20px !important;
+  right: 0 !important;
   transform: translateY(-50%);
 }
 /* the user button shows an icon glyph + caret; make both teal (were
@@ -308,7 +318,14 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
 #user-detail-in-nav .dropdown-toggle {
   color: var(--kirk-accent) !important;
 }
+#jethro-nav-toprow .user-detail .caret,
 #user-detail-in-nav .dropdown-toggle .caret {
   border-top-color: var(--kirk-accent) !important;
   border-bottom-color: var(--kirk-accent) !important;
+}
+/* search submit button beside the home search box rendered blank
+   (icon glyph invisible against the button background) */
+.global-search .btn .icon-search,
+.input-append .btn .icon-search {
+  color: var(--kirk-accent) !important;
 }
