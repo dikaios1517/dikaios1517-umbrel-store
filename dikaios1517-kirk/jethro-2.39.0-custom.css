@@ -214,16 +214,16 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
  * absolutely position its contents into the menu row: logo+title at left,
  * user dropdown at right, menu in between. */
 @media (min-width: 980px) {
-  /* The bar paints itself, so its bottom edge always matches the menu row's
-     bottom edge — a fixed band height overflowed when the row was taller. */
+  /* Band and row both 44px: the row fits INSIDE the band (menu link padding
+     10px + 20px text = 40px row), so the band's bottom edge matches the menu
+     without the overflow the old 44px-band/44px+-row pairing had. */
+  #jethro-nav,
   #jethro-nav-background {
-    display: none !important;
-  }
-  #jethro-nav {
-    height: auto !important;
+    height: 44px !important;
   }
   .navbar {
     margin-bottom: 0 !important;
+    min-height: 40px !important;
   }
   #jethro-nav-toprow {
     height: 0 !important;
@@ -282,8 +282,8 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
     margin-left: 160px !important;
   }
   .navbar .nav > li > a {
-    padding-top: 12px !important;
-    padding-bottom: 12px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
   }
   .navbar .nav > li > a:hover,
   .navbar .nav > li > a:focus {
