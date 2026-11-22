@@ -252,16 +252,24 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
     height: 44px !important;
     margin-right: 10px !important;
   }
+  /* flex centers the search field and the user button on one line regardless
+     of their intrinsic heights (floats + margins left them misaligned) */
+  #jethro-nav-toprow {
+    display: flex !important;
+    align-items: center !important;
+  }
   #jethro-nav-toprow .user-detail {
-    float: right !important;
-    margin: 7px 15px 0 0 !important;
+    order: 2;
+    float: none !important;
+    margin: 0 15px 0 0 !important;
   }
   #jethro-nav-toprow .user-detail > div {
     height: 34px !important;
   }
   #jethro-nav-toprow .global-search {
-    float: right !important;
-    margin: 7px 12px 0 0 !important;
+    order: 1;
+    float: none !important;
+    margin: 0 12px 0 0 !important;
   }
   .nav-collapse {
     padding: 0 !important;
@@ -302,14 +310,17 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
     background-image: none !important;
     border-bottom: 1px solid var(--kirk-border);
   }
+  /* the logo is pinned so nothing that happens to the search field
+     (focus glow, auto-zoom reflow) can shift it down the page */
   #jethro-nav-toprow h1 {
-    position: static !important;
-    display: inline-block !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 8px !important;
     height: 48px !important;
     line-height: 48px !important;
     margin: 0 !important;
-    padding-left: 8px !important;
-    transform: none !important;
+    transform: translateY(-50%);
+    white-space: nowrap !important;
   }
   #jethro-nav-toprow .brand {
     background-size: 30px 30px !important;
@@ -328,7 +339,11 @@ input::placeholder, textarea::placeholder { color: var(--kirk-text-dim); }
   }
   #jethro-nav-toprow .global-search {
     position: static !important;
-    margin: 8px 70px 8px 8px !important;
+    margin: 8px 70px 8px 150px !important; /* clears the pinned logo */
+  }
+  /* >=16px stops mobile browsers auto-zooming on focus, which reflows the page */
+  #jethro-nav-toprow .global-search input {
+    font-size: 16px !important;
   }
   .nav-collapse {
     padding-right: 0 !important;
