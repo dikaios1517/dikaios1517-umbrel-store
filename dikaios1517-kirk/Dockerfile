@@ -52,7 +52,7 @@ COPY folder_add.png folder_delete.png folder_edit.png document_new.png document_
 # theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
-ARG KIRK_REV=26
+ARG KIRK_REV=27
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
          /var/www/html/templates/head.template.php \
  && sed -i "s#customCSSFile; ?>\"#customCSSFile.\"?v=${KIRK_REV}\"; ?>\"#" \
@@ -62,6 +62,11 @@ RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
 
 RUN a2enmod headers
 COPY kirk-cache.conf "$APACHE_CONFDIR/conf-available/kirk-cache.conf"
+# Upstream bugfix overlay: jethro.js with PR #1553 merged (double-submit guard
+# disabled buttons even when client-side validation cancelled the submit, so a
+# required-field toast left "Update"/"Create" unusable). Drop this COPY once
+# the next upstream Jethro release (post master 95da87a8) ships the fix.
+COPY kirk-jethro.js /var/www/html/resources/js/jethro.js
 RUN a2enconf kirk-cache
 
 # Silence the Apache ServerName warning.
