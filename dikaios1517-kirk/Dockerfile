@@ -52,21 +52,28 @@ COPY folder_add.png folder_delete.png folder_edit.png document_new.png document_
 # theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
-ARG KIRK_REV=27
+ARG KIRK_REV=28
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
          /var/www/html/templates/head.template.php \
  && sed -i "s#customCSSFile; ?>\"#customCSSFile.\"?v=${KIRK_REV}\"; ?>\"#" \
          /var/www/html/templates/head.template.php \
  && sed -i '\#apple-touch-icon#a <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/kirk-favicon.png"/>' \
+         /var/www/html/templates/head.template.php \
+ && sed -i "s#JETHRO_VERSION; ?>.js#JETHRO_VERSION; ?>.js?v=${KIRK_REV}#" \
          /var/www/html/templates/head.template.php
 
 RUN a2enmod headers
 COPY kirk-cache.conf "$APACHE_CONFDIR/conf-available/kirk-cache.conf"
-# Upstream bugfix overlay: jethro.js with PR #1553 merged (double-submit guard
-# disabled buttons even when client-side validation cancelled the submit, so a
-# required-field toast left "Update"/"Create" unusable). Drop this COPY once
-# the next upstream Jethro release (post master 95da87a8) ships the fix.
-COPY kirk-jethro.js /var/www/html/resources/js/jethro.js
+# Upstream bugfix overlay: jethro-<VERSION>.js is the MINIFIED-BUNDLE file that
+# non-DEV releases actually load (head.template.php uses it INSTEAD of the
+# individual js files), and it embeds its own copy of the double-submit guard.
+# This overlay carries the bundle with upstream PR #1553 merged: the guard no
+# longer disables submit buttons when client-side validation cancels the
+# submit (required-field toast left "Update"/"Create" unusable — issue #1552).
+# Drop this COPY once the next upstream Jethro release (post master 95da87a8)
+# ships the fix. Its URL also gets a ?v=${KIRK_REV} cache-buster in the RUN
+# sed above.
+COPY kirk-jethro-bundle.js /var/www/html/resources/js/jethro-2.39.0.js
 RUN a2enconf kirk-cache
 
 # Silence the Apache ServerName warning.
