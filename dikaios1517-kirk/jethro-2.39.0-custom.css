@@ -634,3 +634,10 @@ input.btn-link {
   background-image: none !important;
   border-color: var(--kirk-border) !important;
 }
+
+/* Documents page: the folder-tree selection bar (#current-folder) is upstream
+   lavender #A6ACC2 with yellow text — dark surface + teal link instead. */
+#current-folder, #current-folder a, #current-folder:visited, #current-folder a:visited {
+  background-color: var(--kirk-surface-raised) !important;
+  color: var(--kirk-accent) !important;
+}

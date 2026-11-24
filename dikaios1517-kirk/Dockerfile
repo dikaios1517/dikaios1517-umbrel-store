@@ -41,6 +41,9 @@ COPY jethro-2.39.0-custom.css /var/www/html/
 # Logo for the header (referenced by the stylesheet, left of the app title).
 COPY icon.png /var/www/html/kirk-logo.png
 COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
+# Monochrome light-teal replacements for upstream's full-color document
+# toolbar/folder-tree icons (minimalist line art, drawn to match Kirk).
+COPY folder_add.png folder_delete.png folder_edit.png document_new.png document_upload.png folder.png /var/www/html/resources/img/
 # Browser tab: no <link rel=icon> exists upstream, so the tab favicon is the
 # root /favicon.ico — overwrite it with the Kirk cross. The <title> hardcodes
 # 'Jethro - ' before SYSTEM_NAME; strip it so the tab reads just 'Kirk'.
@@ -49,7 +52,7 @@ COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
 # theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
-ARG KIRK_REV=25
+ARG KIRK_REV=26
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
          /var/www/html/templates/head.template.php \
  && sed -i "s#customCSSFile; ?>\"#customCSSFile.\"?v=${KIRK_REV}\"; ?>\"#" \

@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-25"
+version: "2.39.0-26"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -75,7 +75,10 @@ releaseNotes: >-
   thin-stroke ring fused into the cross silhouette), teal underline bar
   retained; favicons regenerated to match.
   2.39.0-25: logo and favicon images now carry no-cache headers too, so
-  the header logo updates on refresh after an app update. 2.39.0-9: responsive header - the single-row header now applies only to
+  the header logo updates on refresh after an app update.
+  2.39.0-26: documents page — folder-tree selection bar is a dark surface
+  with a teal link (was light lavender), and the document toolbar/folder
+  icons are monochrome light-teal line art (was full-color clipart). 2.39.0-9: responsive header - the single-row header now applies only to
   wide screens; narrow windows get a stacked header with the hamburger menu
   working and the logo contained in the bar. 2.39.0-8: logo/title and user button edge-aligned with the content panels
   below. 2.39.0-7: header positioning fix - logo/title and user button were anchored
