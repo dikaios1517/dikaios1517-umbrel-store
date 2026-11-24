@@ -49,7 +49,7 @@ COPY kirk-glyphicons-teal.png /var/www/html/kirk-glyphicons-teal.png
 # theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
-ARG KIRK_REV=22
+ARG KIRK_REV=23
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
          /var/www/html/templates/head.template.php \
  && sed -i "s#customCSSFile; ?>\"#customCSSFile.\"?v=${KIRK_REV}\"; ?>\"#" \
