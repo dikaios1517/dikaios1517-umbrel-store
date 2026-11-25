@@ -652,3 +652,20 @@ input.btn-link {
   overflow-x: hidden !important;
   max-height: calc(100vh - 220px) !important;
 }
+
+/* Login page header: put the Kirk app icon to the left of the app name,
+   the pair right-aligned (the "Jethro PMM" span is already hidden). */
+#login-header h1 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+#login-header h1::before {
+  content: '';
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  background: url("/kirk-logo.png") no-repeat center / contain;
+}
