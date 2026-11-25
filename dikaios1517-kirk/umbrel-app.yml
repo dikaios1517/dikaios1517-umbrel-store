@@ -2,7 +2,7 @@ manifestVersion: 1
 id: dikaios1517-kirk
 category: utility
 name: Kirk
-version: "2.39.0-28"
+version: "2.39.0-29"
 tagline: Church membership, attendance and pastoral care - modern dark interface
 icon: https://raw.githubusercontent.com/Dikaios1517/dikaios1517-umbrel-store/master/dikaios1517-kirk/icon.png
 description: >-
@@ -86,7 +86,10 @@ releaseNotes: >-
   2.39.0-28: corrected the -27 fix — releases load the bundled
   jethro-2.39.0.js (not jethro.js), so the overlay now patches the bundle
   and its URL is cache-busted per release. Submit buttons stay usable
-  after a required-field toast. 2.39.0-9: responsive header - the single-row header now applies only to
+  after a required-field toast.
+  2.39.0-29: "Add to a group" modal — the group list now grows with the
+  content up to the viewport height and then scrolls, instead of spilling
+  past the modal footer. 2.39.0-9: responsive header - the single-row header now applies only to
   wide screens; narrow windows get a stacked header with the hamburger menu
   working and the logo contained in the bar. 2.39.0-8: logo/title and user button edge-aligned with the content panels
   below. 2.39.0-7: header positioning fix - logo/title and user button were anchored

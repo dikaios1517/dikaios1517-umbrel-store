@@ -641,3 +641,14 @@ input.btn-link {
   background-color: var(--kirk-surface-raised) !important;
   color: var(--kirk-accent) !important;
 }
+
+/* "Add to a group" modal (person view): upstream sets an inline
+   style="overflow: visible" on the modal body so the group-chooser tree can
+   escape it — with a long group list the tree spills past the footer and the
+   "Add to ... as a Member" row lands outside the modal. Constrain the body to
+   the viewport: it grows with the list, then scrolls. */
+#add-group-modal .modal-body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: calc(100vh - 220px) !important;
+}

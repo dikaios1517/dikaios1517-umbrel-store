@@ -52,7 +52,7 @@ COPY folder_add.png folder_delete.png folder_edit.png document_new.png document_
 # theme, even though the custom-CSS filename itself only changes upstream.
 COPY kirk-favicon.png /var/www/html/kirk-favicon.png
 COPY favicon.ico /var/www/html/favicon.ico
-ARG KIRK_REV=28
+ARG KIRK_REV=29
 RUN sed -i "s/if (!defined('IS_PUBLIC')) echo 'Jethro - ';//" \
          /var/www/html/templates/head.template.php \
  && sed -i "s#customCSSFile; ?>\"#customCSSFile.\"?v=${KIRK_REV}\"; ?>\"#" \
